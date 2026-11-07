@@ -15,9 +15,7 @@ import {
   Car, 
   Lock, 
   LogOut, 
-  User, 
   CheckCircle, 
-  AlertCircle,
   PlusCircle,
   Image as ImageIcon,
   FileText,
@@ -36,11 +34,12 @@ import {
   Droplets,
   RefreshCw,
   Settings,
-  Navigation
+  Navigation,
+  Waves
 } from 'lucide-react';
 
 // =========================================================================
-//  CONFIGURAZIONE SUPABASE CON LE TUE CHIAVI UFFICIALI
+//  CONFIGURAZIONE SUPABASE
 // =========================================================================
 const SUPABASE_URL = 'https://jyyfdibfzqitdnmxpsdj.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable_3G95fXQNlPt51fze4ztDBQ_2lmKygNP';
@@ -51,7 +50,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'services' | 'booking' | 'admin'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Dati Società e Impostazioni Struttura (Gestiti dall'Admin)
+  // Dati Società e Impostazioni Struttura
   const [siteSettings, setSiteSettings] = useState({
     siteName: 'Il Pozzo dei Desideri',
     subTitle: 'Camping • Caprioli di Pisciotta',
@@ -108,7 +107,6 @@ export default function App() {
     { id: 2, title: 'Costa Cilentana', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80' }
   ]);
 
-  // Lista Servizi Struttura
   const servicesList = [
     { icon: Car, title: "Piazzole Camper", desc: "Spazi ampi dedicati alla sosta camper." },
     { icon: Zap, title: "Energia Elettrica", desc: "Allaccio elettrico disponibile direttamente in piazzola." },
@@ -125,7 +123,6 @@ export default function App() {
 
   const fetchCloudData = async () => {
     try {
-      // 1. Carica Impostazioni Società
       const { data: settingsData } = await supabase.from('site_settings').select('*').eq('id', 1).single();
       if (settingsData) {
         const formattedSettings = {
@@ -146,7 +143,6 @@ export default function App() {
         setSettingsForm(formattedSettings);
       }
 
-      // 2. Carica Prenotazioni
       const { data: bookingsData } = await supabase.from('bookings').select('*').order('id', { ascending: false });
       if (bookingsData && bookingsData.length > 0) {
         setBookingsList(bookingsData.map(b => ({
@@ -162,7 +158,6 @@ export default function App() {
         })));
       }
 
-      // 3. Carica News
       const { data: newsData } = await supabase.from('news').select('*').order('id', { ascending: false });
       if (newsData && newsData.length > 0) {
         setNewsList(newsData.map(n => ({
@@ -178,7 +173,6 @@ export default function App() {
     }
   };
 
-  // Salva Impostazioni in Cloud
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setSiteSettings({ ...settingsForm });
@@ -359,12 +353,6 @@ export default function App() {
       };
       reader.readAsDataURL(file);
     });
-  };
-
-  const handleDeletePhoto = (id: number, section: 'hero' | 'homeGrid' | 'servicesGallery') => {
-    if (section === 'hero') setHeroImages(heroImages.filter(p => p.id !== id));
-    if (section === 'homeGrid') setHomeGridPhotos(homeGridPhotos.filter(p => p.id !== id));
-    if (section === 'servicesGallery') setServicesGallery(servicesGallery.filter(p => p.id !== id));
   };
 
   const extractUrl = (text: string) => {
