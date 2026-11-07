@@ -207,7 +207,7 @@ export default function App() {
         {/* HOME VISTA */}
         {activeTab === 'home' && (
           <div>
-            {/* Hero Section Immersiva con Foto Sfondo */}
+            {/* Hero Section Immersiva con Nome al Centro */}
             <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden">
               <div 
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transform transition duration-1000"
@@ -220,14 +220,22 @@ export default function App() {
               <div className="max-w-4xl mx-auto relative z-10 space-y-6">
                 <span className="bg-emerald-800/80 backdrop-blur-md text-emerald-200 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full inline-flex items-center space-x-2">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Caprioli di Pisciotta • Cilento</span>
+                  <span>Camping • Caprioli di Pisciotta</span>
                 </span>
-                <h1 className="text-4xl sm:text-6xl md:text-7xl font-black leading-tight tracking-tight drop-shadow-lg">
-                  Un'Oasi tra Ulivi Secolari e Mare Cristallino
+
+                {/* Nome del Campeggio In Evidenza Al Centro */}
+                <h1 className="text-5xl sm:text-7xl md:text-8xl font-black leading-tight tracking-tight drop-shadow-2xl text-amber-400">
+                  Il Pozzo dei Desideri
                 </h1>
-                <p className="text-lg md:text-2xl text-stone-200 max-w-2xl mx-auto font-light leading-relaxed drop-shadow">
-                  Vivi l'autentica esperienza del campeggio nel Parco Nazionale del Cilento.
+
+                <p className="text-xl sm:text-3xl md:text-4xl font-light text-stone-100 drop-shadow-lg">
+                  Un'Oasi tra Ulivi Secolari e Mare Cristallino
                 </p>
+
+                <p className="text-base md:text-xl text-stone-200 max-w-2xl mx-auto font-light leading-relaxed drop-shadow">
+                  Vivi l'autentica esperienza del campeggio nel cuore del Parco Nazionale del Cilento.
+                </p>
+
                 <div className="pt-4 flex flex-col sm:flex-row justify-center gap-4">
                   <button 
                     onClick={() => setActiveTab('booking')}
