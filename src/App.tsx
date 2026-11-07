@@ -35,12 +35,30 @@ import {
   Maximize2,
   Zap,
   Droplets,
-  RefreshCw
+  RefreshCw,
+  Settings,
+  Navigation
 } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'services' | 'booking' | 'admin'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Dati Società e Impostazioni Struttura (Gestiti dall'Admin)
+  const [siteSettings, setSiteSettings] = useState({
+    siteName: 'Il Pozzo dei Desideri',
+    subTitle: 'Camping • Caprioli di Pisciotta',
+    heroTitle: 'Il Pozzo dei Desideri',
+    heroTagline: "Un'Oasi tra Ulivi Secolari e Mare Cristallino",
+    description: 'Camping & Relax a Caprioli di Pisciotta (SA). Sperimenta la bellezza del Cilento tra natura incontaminata e mare mozzafiato.',
+    address: 'Caprioli di Pisciotta (SA), Salerno',
+    phone: '+39 0974 000000',
+    email: 'info@ilpozzodeidesideri.it',
+    instagramUrl: '#',
+    facebookUrl: '#',
+    latitude: 40.074218,
+    longitude: 15.271916
+  });
 
   // Autenticazione Admin
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
@@ -52,6 +70,9 @@ export default function App() {
     username: 'admin',
     password: 'pozzo2026'
   };
+
+  // Form Modifica Dati Società
+  const [settingsForm, setSettingsForm] = useState({ ...siteSettings });
 
   // Immagini Hero Home
   const [heroImages, setHeroImages] = useState([
@@ -151,6 +172,7 @@ export default function App() {
     e.preventDefault();
     if (adminUser === CREDENTIALS.username && adminPass === CREDENTIALS.password) {
       setIsAdminAuthenticated(true);
+      setSettingsForm({ ...siteSettings });
       setLoginError('');
     } else {
       setLoginError('Credenziali non valide. Riprova.');
@@ -161,6 +183,12 @@ export default function App() {
     setIsAdminAuthenticated(false);
     setAdminUser('');
     setAdminPass('');
+  };
+
+  const handleSaveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSiteSettings({ ...settingsForm });
+    alert('Dati della società e impostazioni aggiornati con successo!');
   };
 
   const handleBookingSubmit = (e: React.FormEvent) => {
@@ -293,6 +321,9 @@ export default function App() {
     return null;
   };
 
+  const mapsUrl = `https://www.google.com/maps?q=${siteSettings.latitude},${siteSettings.longitude}`;
+  const mapsEmbedUrl = `https://maps.google.com/maps?q=${siteSettings.latitude},${siteSettings.longitude}&z=15&output=embed`;
+
   return (
     <div className="min-h-screen bg-stone-50 text-stone-800 font-sans flex flex-col justify-between">
       {/* Header */}
@@ -301,8 +332,8 @@ export default function App() {
           <div onClick={() => setActiveTab('home')} className="cursor-pointer flex items-center space-x-2">
             <Trees className="w-8 h-8 text-emerald-400" />
             <div>
-              <span className="text-xl font-bold tracking-wide block leading-none">Il Pozzo dei Desideri</span>
-              <span className="text-xs text-emerald-300 font-light tracking-wider uppercase">Camping • Caprioli di Pisciotta</span>
+              <span className="text-xl font-bold tracking-wide block leading-none">{siteSettings.siteName}</span>
+              <span className="text-xs text-emerald-300 font-light tracking-wider uppercase">{siteSettings.subTitle}</span>
             </div>
           </div>
 
@@ -350,15 +381,15 @@ export default function App() {
               <div className="max-w-4xl mx-auto relative z-10 space-y-6">
                 <span className="bg-emerald-800/80 backdrop-blur-md text-emerald-200 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full inline-flex items-center space-x-2">
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Camping • Caprioli di Pisciotta</span>
+                  <span>{siteSettings.subTitle}</span>
                 </span>
 
                 <h1 className="text-5xl sm:text-7xl md:text-8xl font-black leading-tight tracking-tight drop-shadow-2xl text-amber-400">
-                  Il Pozzo dei Desideri
+                  {siteSettings.heroTitle}
                 </h1>
 
                 <p className="text-xl sm:text-3xl md:text-4xl font-light text-stone-100 drop-shadow-lg">
-                  Un'Oasi tra Ulivi Secolari e Mare Cristallino
+                  {siteSettings.heroTagline}
                 </p>
 
                 <div className="pt-4 flex flex-col sm:flex-row justify-center gap-4">
@@ -388,7 +419,7 @@ export default function App() {
             {/* Griglia Foto Home con Ingrandimento */}
             <section className="py-20 px-4 max-w-7xl mx-auto">
               <div className="text-center mb-14">
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900">Vivi Il Pozzo dei Desideri</h2>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900">Vivi {siteSettings.siteName}</h2>
                 <p className="text-stone-600 mt-2 text-lg">Natura, relax e il profumo unico della macchia mediterranea (clicca su ogni foto per ingrandirla)</p>
               </div>
 
@@ -413,6 +444,45 @@ export default function App() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+
+            {/* SEZIONE MAPPA GOOGLE MAPS CON COORDINATE ESATTE */}
+            <section className="py-16 bg-stone-100 border-t border-stone-200 px-4">
+              <div className="max-w-7xl mx-auto">
+                <div className="text-center mb-10">
+                  <MapPin className="w-10 h-10 text-emerald-800 mx-auto mb-2" />
+                  <h2 className="text-3xl font-bold text-stone-900">Dove Siamo</h2>
+                  <p className="text-stone-600 mt-1">{siteSettings.address}</p>
+                </div>
+
+                <div className="bg-white p-4 rounded-3xl shadow-lg border border-stone-200 overflow-hidden space-y-4">
+                  <div className="w-full h-96 rounded-2xl overflow-hidden relative">
+                    <iframe 
+                      src={mapsEmbedUrl}
+                      className="w-full h-full border-0"
+                      allowFullScreen
+                      loading="lazy"
+                      title="Google Maps Location"
+                    ></iframe>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-between items-center p-2 gap-4">
+                    <div className="text-xs text-stone-600">
+                      <strong>Coordinate GPS:</strong> {siteSettings.latitude}, {siteSettings.longitude}
+                    </div>
+                    <a 
+                      href={mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-emerald-900 hover:bg-emerald-800 text-white font-bold px-6 py-3 rounded-xl text-xs transition flex items-center space-x-2 shadow-md"
+                    >
+                      <Navigation className="w-4 h-4" />
+                      <span>Apri su Google Maps</span>
+                      <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                    </a>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -649,7 +719,7 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              /* DASHBOARD CMS ADMIN */
+              /* DASHBOARD CMS ADMIN COMPLETO */
               <div className="py-10 px-4 max-w-7xl mx-auto space-y-10">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-sm border border-stone-200 gap-4">
                   <div>
@@ -657,8 +727,8 @@ export default function App() {
                       <CheckCircle className="w-3.5 h-3.5" />
                       <span>Accesso Autorizzato</span>
                     </span>
-                    <h1 className="text-2xl font-bold text-stone-900">CMS - Pannello di Controllo</h1>
-                    <p className="text-xs text-stone-500">Importazione foto locali (max 5), News/Video e Prenotazioni PDF.</p>
+                    <h1 className="text-2xl font-bold text-stone-900">CMS - Gestione Totale Sito</h1>
+                    <p className="text-xs text-stone-500">Gestione dati azienda, mappa, foto locali, News e prenotazioni PDF.</p>
                   </div>
                   
                   <button onClick={handleAdminLogout} className="flex items-center space-x-2 bg-stone-100 text-stone-700 px-4 py-2 rounded-xl hover:bg-red-50 hover:text-red-600 border border-stone-200 transition">
@@ -667,7 +737,74 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Gestione Foto da Locale */}
+                {/* MODULO 1: GESTIONE DATI SOCIETÀ E HOME PAGE */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
+                  <div className="flex items-center space-x-2 border-b pb-4">
+                    <Settings className="w-6 h-6 text-emerald-800" />
+                    <h3 className="text-xl font-bold">Dati Società, Contatti & Testi Home</h3>
+                  </div>
+
+                  <form onSubmit={handleSaveSettings} className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Nome Struttura / Azienda</label>
+                        <input type="text" value={settingsForm.siteName} onChange={(e) => setSettingsForm({ ...settingsForm, siteName: e.target.value })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Sottotitolo Header</label>
+                        <input type="text" value={settingsForm.subTitle} onChange={(e) => setSettingsForm({ ...settingsForm, subTitle: e.target.value })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Titolo Principale Home (Hero)</label>
+                        <input type="text" value={settingsForm.heroTitle} onChange={(e) => setSettingsForm({ ...settingsForm, heroTitle: e.target.value })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Slogan/Tagline Home</label>
+                        <input type="text" value={settingsForm.heroTagline} onChange={(e) => setSettingsForm({ ...settingsForm, heroTagline: e.target.value })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Telefono</label>
+                        <input type="text" value={settingsForm.phone} onChange={(e) => setSettingsForm({ ...settingsForm, phone: e.target.value })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Email</label>
+                        <input type="email" value={settingsForm.email} onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Indirizzo Completo</label>
+                        <input type="text" value={settingsForm.address} onChange={(e) => setSettingsForm({ ...settingsForm, address: e.target.value })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Coordinate Google Maps (Latitudine)</label>
+                        <input type="number" step="any" value={settingsForm.latitude} onChange={(e) => setSettingsForm({ ...settingsForm, latitude: parseFloat(e.target.value) })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Coordinate Google Maps (Longitudine)</label>
+                        <input type="number" step="any" value={settingsForm.longitude} onChange={(e) => setSettingsForm({ ...settingsForm, longitude: parseFloat(e.target.value) })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Descrizione Società (Footer)</label>
+                      <textarea rows={2} value={settingsForm.description} onChange={(e) => setSettingsForm({ ...settingsForm, description: e.target.value })} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800" />
+                    </div>
+
+                    <button type="submit" className="bg-emerald-900 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-emerald-800 transition">
+                      Salva Tutti i Dati Società
+                    </button>
+                  </form>
+                </div>
+
+                {/* MODULO 2: GESTIONE FOTO DA LOCALE */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
                   <div className="flex items-center space-x-2 border-b pb-4">
                     <ImageIcon className="w-6 h-6 text-emerald-800" />
@@ -762,7 +899,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Gestione Prenotazioni & PDF */}
+                {/* MODULO 3: GESTIONE PRENOTAZIONI & PDF */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
                   <div className="flex items-center space-x-2 border-b pb-4">
                     <Calendar className="w-6 h-6 text-emerald-800" />
@@ -813,8 +950,8 @@ export default function App() {
                       {selectedBookingForPdf ? (
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-stone-200 space-y-4 text-sm">
                           <div className="text-center border-b pb-3">
-                            <h5 className="font-bold text-emerald-900 text-base">CAMPEGGIO "IL POZZO DEI DESIDERI"</h5>
-                            <p className="text-xs text-stone-500">Caprioli di Pisciotta (SA) • Scheda Prenotazione Ufficiale</p>
+                            <h5 className="font-bold text-emerald-900 text-base">{siteSettings.siteName.toUpperCase()}</h5>
+                            <p className="text-xs text-stone-500">{siteSettings.address} • Scheda Prenotazione Ufficiale</p>
                           </div>
 
                           <div className="grid grid-cols-2 gap-2 text-xs text-stone-600">
@@ -836,7 +973,7 @@ export default function App() {
                           </div>
 
                           <div className="text-center pt-4 border-t text-[10px] text-stone-400">
-                            Documento generato digitalmente dal gestionale web - Il Pozzo dei Desideri
+                            Documento generato digitalmente dal gestionale web - {siteSettings.siteName}
                           </div>
                         </div>
                       ) : (
@@ -849,7 +986,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Gestione News */}
+                {/* MODULO 4: GESTIONE NEWS */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
                   <div className="flex items-center space-x-2 border-b pb-4">
                     <FileText className="w-6 h-6 text-emerald-800" />
@@ -942,9 +1079,9 @@ export default function App() {
       <footer className="bg-stone-900 text-stone-400 py-10 px-4 border-t border-stone-800">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8 text-sm">
           <div>
-            <h4 className="text-white font-bold text-base mb-3">Il Pozzo dei Desideri</h4>
+            <h4 className="text-white font-bold text-base mb-3">{siteSettings.siteName}</h4>
             <p className="text-stone-400 text-xs leading-relaxed">
-              Camping & Relax a Caprioli di Pisciotta (SA). Sperimenta la bellezza del Cilento tra natura incontaminata e mare mozzafiato.
+              {siteSettings.description}
             </p>
           </div>
 
@@ -953,15 +1090,15 @@ export default function App() {
             <ul className="space-y-2 text-xs">
               <li className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Caprioli di Pisciotta (SA), Salerno</span>
+                <span>{siteSettings.address}</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>+39 0974 000000</span>
+                <span>{siteSettings.phone}</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>info@ilpozzodeidesideri.it</span>
+                <span>{siteSettings.email}</span>
               </li>
             </ul>
           </div>
@@ -969,10 +1106,10 @@ export default function App() {
           <div>
             <h4 className="text-white font-bold text-base mb-3">Seguici</h4>
             <div className="flex space-x-4">
-              <a href="#" className="w-9 h-9 bg-stone-800 rounded-full flex items-center justify-center hover:text-white transition">
+              <a href={siteSettings.instagramUrl} target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-stone-800 rounded-full flex items-center justify-center hover:text-white transition">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="#" className="w-9 h-9 bg-stone-800 rounded-full flex items-center justify-center hover:text-white transition">
+              <a href={siteSettings.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-stone-800 rounded-full flex items-center justify-center hover:text-white transition">
                 <Facebook className="w-5 h-5" />
               </a>
             </div>
@@ -980,7 +1117,7 @@ export default function App() {
         </div>
 
         <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-stone-800 text-center text-xs text-stone-500">
-          © {new Date().getFullYear()} Camping Il Pozzo dei Desideri. Tutti i diritti riservati.
+          © {new Date().getFullYear()} {siteSettings.siteName}. Tutti i diritti riservati.
         </div>
       </footer>
     </div>
