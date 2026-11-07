@@ -83,7 +83,7 @@ export default function App() {
   const [newsList, setNewsList] = useState<any[]>([]);
   const [bookingsList, setBookingsList] = useState<any[]>([]);
 
-  // Foto Cloud per le sezioni
+  // Foto per le Sezioni
   const [heroImages, setHeroImages] = useState<any[]>([
     { id: 1, title: 'Tramonto Cilento (Principale)', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80', section: 'hero' }
   ]);
@@ -108,33 +108,36 @@ export default function App() {
     { icon: Wifi, title: "Wi-Fi Gratuito", desc: "Connessione internet senza fili a disposizione degli ospiti." }
   ];
 
-  // Caricamento Dati all'avvio
+  // Caricamento Dati Iniziali dal Database Supabase
   useEffect(() => {
     fetchCloudData();
   }, []);
 
   const fetchCloudData = async () => {
     try {
-      const { data: settingsData } = await supabase.from('site_settings').select('*').eq('id', 1).single();
-      if (settingsData) {
-        const formattedSettings = {
-          siteName: settingsData.site_name || siteSettings.siteName,
-          subTitle: settingsData.sub_title || siteSettings.subTitle,
-          heroTitle: settingsData.hero_title || siteSettings.heroTitle,
-          heroTagline: settingsData.hero_tagline || siteSettings.heroTagline,
-          description: settingsData.description || siteSettings.description,
-          address: settingsData.address || siteSettings.address,
-          phone: settingsData.phone || siteSettings.phone,
-          email: settingsData.email || siteSettings.email,
-          instagramUrl: settingsData.instagram_url || siteSettings.instagramUrl,
-          facebookUrl: settingsData.facebook_url || siteSettings.facebookUrl,
-          latitude: settingsData.latitude || siteSettings.latitude,
-          longitude: settingsData.longitude || siteSettings.longitude
+      // 1. Carica Impostazioni Generali
+      const { data: settingsData } = await supabase.from('site_settings').select('*');
+      if (settingsData && settingsData.length > 0) {
+        const s = settingsData[0];
+        const formatted = {
+          siteName: s.site_name || siteSettings.siteName,
+          subTitle: s.sub_title || siteSettings.subTitle,
+          heroTitle: s.hero_title || siteSettings.heroTitle,
+          heroTagline: s.hero_tagline || siteSettings.heroTagline,
+          description: s.description || siteSettings.description,
+          address: s.address || siteSettings.address,
+          phone: s.phone || siteSettings.phone,
+          email: s.email || siteSettings.email,
+          instagramUrl: s.instagram_url || siteSettings.instagramUrl,
+          facebookUrl: s.facebook_url || siteSettings.facebookUrl,
+          latitude: s.latitude || siteSettings.latitude,
+          longitude: s.longitude || siteSettings.longitude
         };
-        setSiteSettings(formattedSettings);
-        setSettingsForm(formattedSettings);
+        setSiteSettings(formatted);
+        setSettingsForm(formatted);
       }
 
+      // 2. Carica Prenotazioni
       const { data: bookingsData } = await supabase.from('bookings').select('*').order('id', { ascending: false });
       if (bookingsData) {
         setBookingsList(bookingsData.map(b => ({
@@ -150,6 +153,7 @@ export default function App() {
         })));
       }
 
+      // 3. Carica News
       const { data: newsData } = await supabase.from('news').select('*').order('id', { ascending: false });
       if (newsData && newsData.length > 0) {
         setNewsList(newsData.map(n => ({
@@ -159,18 +163,9 @@ export default function App() {
           content: n.content,
           imageUrl: n.image_url
         })));
-      } else {
-        setNewsList([
-          { 
-            id: 1, 
-            title: 'Guarda il video del nostro campeggio!', 
-            date: '1 Giugno 2026', 
-            content: 'Scopri la bellezza delle nostre piazzole e delle spiagge di Caprioli nel video ufficiale: https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            imageUrl: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
-          }
-        ]);
       }
 
+      // 4. Carica Foto
       const { data: photosData } = await supabase.from('site_photos').select('*');
       if (photosData && photosData.length > 0) {
         const heroes = photosData.filter(p => p.section === 'hero');
@@ -182,14 +177,14 @@ export default function App() {
         if (serv.length > 0) setServicesGallery(serv);
       }
     } catch (error) {
-      console.log('Errore sincronizzazione cloud:', error);
+      console.error('Errore durante la lettura da Supabase:', error);
     }
   };
 
-  // 1. Salvataggio Diretto Impostazioni
+  // Salvataggio Impostazioni Struttura
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.from('site_settings').upsert({
+    const payload = {
       id: 1,
       site_name: settingsForm.siteName,
       sub_title: settingsForm.subTitle,
@@ -203,13 +198,16 @@ export default function App() {
       facebook_url: settingsForm.facebookUrl,
       latitude: settingsForm.latitude,
       longitude: settingsForm.longitude
-    });
+    };
+
+    const { error } = await supabase.from('site_settings').upsert([payload]);
 
     if (!error) {
       setSiteSettings({ ...settingsForm });
-      alert('✅ Dati Società salvati con successo su Supabase!');
+      alert('✅ Dati Società salvati con successo in Supabase!');
     } else {
-      alert('❌ Errore nel salvataggio dei dati.');
+      console.error(error);
+      alert(`❌ Errore durante il salvataggio: ${error.message}`);
     }
   };
 
@@ -242,17 +240,20 @@ export default function App() {
       created_at: new Date().toISOString().replace('T', ' ').substring(0, 16)
     };
 
-    await supabase.from('bookings').insert([newBooking]);
-    fetchCloudData();
-
-    setBookingSuccess(true);
-    setClientName('');
-    setClientEmail('');
-    setClientPhone('');
-    setCheckInDate('');
-    setCheckOutDate('');
-    setClientNotes('');
-    setTimeout(() => setBookingSuccess(false), 5000);
+    const { error } = await supabase.from('bookings').insert([newBooking]);
+    if (!error) {
+      fetchCloudData();
+      setBookingSuccess(true);
+      setClientName('');
+      setClientEmail('');
+      setClientPhone('');
+      setCheckInDate('');
+      setCheckOutDate('');
+      setClientNotes('');
+      setTimeout(() => setBookingSuccess(false), 5000);
+    } else {
+      alert(`Errore invio prenotazione: ${error.message}`);
+    }
   };
 
   // Modale Lightbox
@@ -269,7 +270,7 @@ export default function App() {
   const nextLightboxImage = () => setLightboxIndex((prev) => (prev + 1) % lightboxAlbum.length);
   const prevLightboxImage = () => setLightboxIndex((prev) => (prev - 1 + lightboxAlbum.length) % lightboxAlbum.length);
 
-  // 2. Salvataggio Diretto News
+  // Gestione News
   const [newNewsTitle, setNewNewsTitle] = useState('');
   const [newNewsContent, setNewNewsContent] = useState('');
 
@@ -288,9 +289,9 @@ export default function App() {
       fetchCloudData();
       setNewNewsTitle('');
       setNewNewsContent('');
-      alert('✅ News pubblicata e salvata su Supabase!');
+      alert('✅ News salvata con successo!');
     } else {
-      alert('❌ Errore durante la pubblicazione.');
+      alert(`Errore pubblicazione news: ${error.message}`);
     }
   };
 
@@ -299,12 +300,10 @@ export default function App() {
     fetchCloudData();
   };
 
-  // 3. Salvataggio Diretto Foto su Supabase Storage
+  // Gestione Foto (Base64 / Local Upload)
   const [photoTargetSection, setPhotoTargetSection] = useState<'hero' | 'homeGrid' | 'servicesGallery'>('hero');
   const [adminPhotoTitle, setAdminPhotoTitle] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  const [uploadError, setUploadError] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -323,62 +322,43 @@ export default function App() {
     setAdminPass('');
   };
 
-  const handleCloudPhotoUpload = async (e: React.FormEvent) => {
+  const handleUploadPhotos = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFiles || selectedFiles.length === 0) return;
 
-    if (selectedFiles.length > 5) {
-      setUploadError('Puoi selezionare un massimo di 5 foto per volta.');
-      return;
-    }
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      const reader = new FileReader();
 
-    setIsUploading(true);
-    setUploadError('');
+      reader.onload = async (uploadEvent) => {
+        if (uploadEvent.target?.result) {
+          const photoObj = {
+            id: Date.now() + i,
+            title: adminPhotoTitle ? `${adminPhotoTitle} (${i + 1})` : file.name,
+            url: uploadEvent.target.result as string,
+            section: photoTargetSection
+          };
 
-    try {
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${i}.${fileExt}`;
-        const filePath = `${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('photos')
-          .upload(filePath, file);
-
-        if (uploadError) {
-          console.error('Errore storage:', uploadError);
-          continue;
+          // Salva su Database Supabase
+          const { error } = await supabase.from('site_photos').insert([photoObj]);
+          if (!error) {
+            fetchCloudData();
+          } else {
+            console.error('Errore salvataggio foto su Supabase:', error);
+          }
         }
+      };
 
-        const { data: publicUrlData } = supabase.storage
-          .from('photos')
-          .getPublicUrl(filePath);
-
-        const photoRecord = {
-          id: Date.now() + i,
-          title: adminPhotoTitle ? `${adminPhotoTitle} (${i + 1})` : file.name,
-          url: publicUrlData.publicUrl,
-          section: photoTargetSection
-        };
-
-        await supabase.from('site_photos').insert([photoRecord]);
-      }
-
-      alert('✅ Foto caricate e salvate permanentemente su Supabase!');
-      setAdminPhotoTitle('');
-      setSelectedFiles(null);
-      fetchCloudData();
-    } catch (err) {
-      console.error(err);
-      alert("❌ Errore imprevisto durante l'upload.");
-    } finally {
-      setIsUploading(false);
+      reader.readAsDataURL(file);
     }
+
+    alert('✅ Caricamento completato!');
+    setAdminPhotoTitle('');
+    setSelectedFiles(null);
   };
 
-  const handleDeleteCloudPhoto = async (id: number) => {
-    if (confirm('Vuoi davvero eliminare questa foto dal cloud?')) {
+  const handleDeletePhoto = async (id: number) => {
+    if (confirm('Vuoi davvero rimuovere questa foto?')) {
       await supabase.from('site_photos').delete().eq('id', id);
       fetchCloudData();
     }
@@ -492,7 +472,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* Griglia Foto Home con Ingrandimento */}
+            {/* Griglia Foto Home */}
             <section className="py-20 px-4 max-w-7xl mx-auto">
               <div className="text-center mb-14">
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900">Vivi {siteSettings.siteName}</h2>
@@ -752,7 +732,7 @@ export default function App() {
                 <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border">
                   <div>
                     <h1 className="text-2xl font-bold text-stone-900">CMS - Pannello Admin</h1>
-                    <p className="text-xs text-stone-500">Gestisci i dati della società, le foto e le prenotazioni con salvataggio diretto.</p>
+                    <p className="text-xs text-stone-500">Gestisci i dati della struttura, le foto e le prenotazioni.</p>
                   </div>
                   <button onClick={handleAdminLogout} className="flex items-center space-x-2 bg-stone-100 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-red-50 hover:text-red-600 transition">
                     <LogOut className="w-4 h-4" />
@@ -760,11 +740,11 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* 1. SEZIONE DATI SOCIETÀ */}
+                {/* MODULO DATI SOCIETÀ */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <Settings className="w-6 h-6 text-emerald-800" />
-                    <span>1. Dati Società & Home Page</span>
+                    <span>1. Dati Società & Home Page (Cloud)</span>
                   </h3>
 
                   <form onSubmit={handleSaveSettings} className="space-y-4">
@@ -801,16 +781,14 @@ export default function App() {
                   </form>
                 </div>
 
-                {/* 2. SEZIONE CARICAMENTO FOTO */}
+                {/* MODULO CARICAMENTO FOTO */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <ImageIcon className="w-6 h-6 text-emerald-800" />
-                    <span>2. Gestione & Caricamento Foto (Cloud Storage)</span>
+                    <span>2. Gestione Foto & Galleria</span>
                   </h3>
 
-                  {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
-
-                  <form onSubmit={handleCloudPhotoUpload} className="grid md:grid-cols-4 gap-4 items-end bg-stone-50 p-4 rounded-xl border">
+                  <form onSubmit={handleUploadPhotos} className="grid md:grid-cols-4 gap-4 items-end bg-stone-50 p-4 rounded-xl border">
                     <div>
                       <label className="block text-xs font-semibold uppercase mb-1">Sezione Destinazione</label>
                       <select value={photoTargetSection} onChange={(e: any) => setPhotoTargetSection(e.target.value)} className="w-full p-2.5 border rounded-lg text-sm bg-white">
@@ -826,26 +804,26 @@ export default function App() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase mb-1">Seleziona File (Max 5)</label>
+                      <label className="block text-xs font-semibold uppercase mb-1">Seleziona File</label>
                       <input type="file" accept="image/*" multiple onChange={(e) => setSelectedFiles(e.target.files)} className="w-full text-xs text-stone-600 file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-800" />
                     </div>
 
-                    <button type="submit" disabled={isUploading} className="bg-emerald-900 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-emerald-800 transition flex items-center justify-center space-x-2 disabled:opacity-50">
+                    <button type="submit" className="bg-emerald-900 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-emerald-800 transition flex items-center justify-center space-x-2">
                       <Upload className="w-4 h-4" />
-                      <span>{isUploading ? 'Salvataggio...' : 'Salva Foto in Supabase'}</span>
+                      <span>Salva Foto in Supabase</span>
                     </button>
                   </form>
 
-                  {/* Lista foto attive con eliminazione diretta */}
+                  {/* Foto Caricate */}
                   <div className="pt-4 border-t">
-                    <h4 className="font-bold text-sm mb-3">Foto Attualmente nel Cloud:</h4>
+                    <h4 className="font-bold text-sm mb-3">Foto Gestite nel Cloud:</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[...heroImages, ...homeGridPhotos, ...servicesGallery].map((photo) => (
                         <div key={photo.id} className="relative bg-stone-100 p-2 rounded-xl border flex flex-col justify-between">
                           <img src={photo.url} alt={photo.title} className="w-full h-28 object-cover rounded-lg mb-2" />
                           <p className="text-xs font-semibold truncate">{photo.title}</p>
                           <span className="text-[10px] text-emerald-700 uppercase font-bold">{photo.section}</span>
-                          <button onClick={() => handleDeleteCloudPhoto(photo.id)} className="absolute top-3 right-3 bg-red-600 text-white p-1.5 rounded-full shadow hover:bg-red-700 transition">
+                          <button onClick={() => handleDeletePhoto(photo.id)} className="absolute top-3 right-3 bg-red-600 text-white p-1.5 rounded-full shadow hover:bg-red-700 transition">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -854,7 +832,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 3. SEZIONE PRENOTAZIONI */}
+                {/* MODULO PRENOTAZIONI */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <Calendar className="w-6 h-6 text-emerald-800" />
@@ -918,7 +896,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 4. SEZIONE NEWS */}
+                {/* MODULO NEWS */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <FileText className="w-6 h-6 text-emerald-800" />
