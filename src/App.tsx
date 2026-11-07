@@ -30,7 +30,10 @@ import {
   ExternalLink,
   Share2,
   PlayCircle,
-  Upload
+  Upload,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2
 } from 'lucide-react';
 
 export default function App() {
@@ -65,6 +68,25 @@ export default function App() {
     { id: 1, title: 'Panoramica Campeggio', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80' },
     { id: 2, title: 'Costa Cilentana', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80' }
   ]);
+
+  // Stato Lightbox / Ingrandimento Foto & Album Sfogliabile
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxAlbum, setLightboxAlbum] = useState<{ id: number; title: string; url: string }[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const openLightbox = (album: { id: number; title: string; url: string }[], index: number) => {
+    setLightboxAlbum(album);
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
+  const nextLightboxImage = () => {
+    setLightboxIndex((prev) => (prev + 1) % lightboxAlbum.length);
+  };
+
+  const prevLightboxImage = () => {
+    setLightboxIndex((prev) => (prev - 1 + lightboxAlbum.length) % lightboxAlbum.length);
+  };
 
   // News con supporto Video Embed e Link Social
   const [newsList, setNewsList] = useState([
@@ -157,7 +179,6 @@ export default function App() {
     setTimeout(() => setBookingSuccess(false), 5000);
   };
 
-  // Caricamento Foto Locali (Max 5 alla volta)
   const handleLocalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       if (e.target.files.length > 5) {
@@ -237,14 +258,12 @@ export default function App() {
     if (selectedBookingForPdf?.id === id) setSelectedBookingForPdf(null);
   };
 
-  // Estrattore URL
   const extractUrl = (text: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     const matches = text.match(urlRegex);
     return matches ? matches[0] : null;
   };
 
-  // Convertitore per Player Video (YouTube, Vimeo)
   const getEmbedVideoUrl = (url: string | null) => {
     if (!url) return null;
     if (url.includes('youtube.com/watch?v=')) {
@@ -308,15 +327,24 @@ export default function App() {
         {/* HOME VISTA */}
         {activeTab === 'home' && (
           <div>
-            {/* Hero */}
-            <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden">
+            {/* Hero con Ingrandimento al Clic */}
+            <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden group">
               <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transform transition duration-1000"
+                onClick={() => openLightbox(heroImages, 0)}
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transform transition duration-1000 cursor-pointer"
                 style={{ backgroundImage: `url('${heroImages[0]?.url || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80'}')` }}
               ></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/60 to-emerald-950/40"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/60 to-emerald-950/40 pointer-events-none"></div>
+
+              <button 
+                onClick={() => openLightbox(heroImages, 0)}
+                className="absolute top-6 right-6 bg-black/40 hover:bg-black/60 text-white p-3 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition z-20"
+                title="Ingrandisci Sfondo"
+              >
+                <Maximize2 className="w-5 h-5" />
+              </button>
               
-              <div className="max-w-4xl mx-auto relative z-10 space-y-6">
+              <div className="max-w-4xl mx-auto relative z-10 space-y-6 pointer-events-auto">
                 <span className="bg-emerald-800/80 backdrop-blur-md text-emerald-200 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full inline-flex items-center space-x-2">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Camping • Caprioli di Pisciotta</span>
@@ -342,29 +370,38 @@ export default function App() {
               </div>
             </section>
 
-            {/* Griglia Foto Home */}
+            {/* Griglia Foto Home con Ingrandimento */}
             <section className="py-20 px-4 max-w-7xl mx-auto">
               <div className="text-center mb-14">
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900">Vivi Il Pozzo dei Desideri</h2>
-                <p className="text-stone-600 mt-2 text-lg">Natura, relax e il profumo unico della macchia mediterranea</p>
+                <p className="text-stone-600 mt-2 text-lg">Natura, relax e il profumo unico della macchia mediterranea (clicca su ogni foto per ingrandirla)</p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-8">
                 {homeGridPhotos.map((photo, idx) => (
-                  <div key={photo.id || idx} className="group relative rounded-3xl overflow-hidden shadow-lg border border-stone-200 h-96">
+                  <div 
+                    key={photo.id || idx} 
+                    onClick={() => openLightbox(homeGridPhotos, idx)}
+                    className="group relative rounded-3xl overflow-hidden shadow-lg border border-stone-200 h-96 cursor-pointer"
+                  >
                     <img src={photo.url} alt={photo.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
                     <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/30 to-transparent p-6 flex flex-col justify-end text-white">
-                      {idx === 0 && <Trees className="w-8 h-8 text-emerald-400 mb-2" />}
-                      {idx === 1 && <Waves className="w-8 h-8 text-sky-400 mb-2" />}
-                      {idx >= 2 && <Utensils className="w-8 h-8 text-amber-400 mb-2" />}
-                      <h3 className="text-2xl font-bold">{photo.title}</h3>
+                      <div className="flex justify-between items-end">
+                        <div>
+                          {idx === 0 && <Trees className="w-8 h-8 text-emerald-400 mb-2" />}
+                          {idx === 1 && <Waves className="w-8 h-8 text-sky-400 mb-2" />}
+                          {idx >= 2 && <Utensils className="w-8 h-8 text-amber-400 mb-2" />}
+                          <h3 className="text-2xl font-bold">{photo.title}</h3>
+                        </div>
+                        <Maximize2 className="w-5 h-5 text-stone-300 opacity-0 group-hover:opacity-100 transition" />
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             </section>
 
-            {/* News con PLAYER VIDEO */}
+            {/* News */}
             <section className="py-16 bg-emerald-950 text-white px-4">
               <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-emerald-900 pb-6">
@@ -428,7 +465,7 @@ export default function App() {
           </div>
         )}
 
-        {/* SERVIZI E GALLERIA */}
+        {/* SERVIZI E GALLERIA CON SFOGLIA ALBUM */}
         {activeTab === 'services' && (
           <div className="py-12 px-4 max-w-7xl mx-auto space-y-16">
             <div>
@@ -452,15 +489,28 @@ export default function App() {
               </div>
             </div>
 
+            {/* Galleria Fotografica con Ingrandimento ed Album Sfogliabile */}
             <div>
               <div className="text-center mb-10">
                 <h2 className="text-3xl font-bold text-stone-900">Galleria Fotografica</h2>
-                <p className="text-stone-600 mt-1">Scatti dal nostro campeggio</p>
+                <p className="text-stone-600 mt-1">Clicca su qualsiasi foto per ingrandirla e sfogliare l'album completo</p>
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {servicesGallery.map(photo => (
-                  <div key={photo.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 group">
-                    <img src={photo.url} alt={photo.title} className="w-full h-64 object-cover group-hover:scale-105 transition duration-300" />
+                {servicesGallery.map((photo, index) => (
+                  <div 
+                    key={photo.id} 
+                    onClick={() => openLightbox(servicesGallery, index)}
+                    className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 group cursor-pointer relative"
+                  >
+                    <div className="relative h-64 overflow-hidden">
+                      <img src={photo.url} alt={photo.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                        <span className="bg-white/90 text-stone-900 font-semibold px-4 py-2 rounded-full text-xs flex items-center space-x-2">
+                          <Maximize2 className="w-4 h-4" />
+                          <span>Ingrandisci Foto</span>
+                        </span>
+                      </div>
+                    </div>
                     <div className="p-4">
                       <h4 className="font-bold text-stone-800">{photo.title}</h4>
                     </div>
@@ -828,6 +878,55 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* MODAL LIGHTBOX - INGRANDIMENTO & SFOGLIA ALBUM */}
+      {lightboxOpen && lightboxAlbum.length > 0 && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+          <button 
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition z-50"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Freccia Indietro */}
+          {lightboxAlbum.length > 1 && (
+            <button 
+              onClick={prevLightboxImage}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition z-50"
+            >
+              <ChevronLeft className="w-8 h-8" />
+            </button>
+          )}
+
+          {/* Contenitore Immagine Ingrandita */}
+          <div className="max-w-5xl max-h-[85vh] flex flex-col items-center">
+            <img 
+              src={lightboxAlbum[lightboxIndex]?.url} 
+              alt={lightboxAlbum[lightboxIndex]?.title} 
+              className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl"
+            />
+            <div className="mt-4 text-center text-white">
+              <h3 className="text-xl font-bold">{lightboxAlbum[lightboxIndex]?.title}</h3>
+              {lightboxAlbum.length > 1 && (
+                <p className="text-xs text-stone-400 mt-1">
+                  Foto {lightboxIndex + 1} di {lightboxAlbum.length}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Freccia Avanti */}
+          {lightboxAlbum.length > 1 && (
+            <button 
+              onClick={nextLightboxImage}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition z-50"
+            >
+              <ChevronRight className="w-8 h-8" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-stone-900 text-stone-400 py-10 px-4 border-t border-stone-800">
