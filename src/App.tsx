@@ -16,7 +16,6 @@ import {
   Lock, 
   LogOut, 
   CheckCircle, 
-  PlusCircle,
   Image as ImageIcon,
   FileText,
   Trash2,
@@ -80,31 +79,23 @@ export default function App() {
   const [settingsForm, setSettingsForm] = useState({ ...siteSettings });
 
   // News & Prenotazioni
-  const [newsList, setNewsList] = useState<any[]>([
-    { 
-      id: 1, 
-      title: 'Guarda il video del nostro campeggio!', 
-      date: '1 Giugno 2026', 
-      content: 'Scopri la bellezza delle nostre piazzole e delle spiagge di Caprioli nel video ufficiale: https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      imageUrl: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
-    }
-  ]);
+  const [newsList, setNewsList] = useState<any[]>([]);
   const [bookingsList, setBookingsList] = useState<any[]>([]);
 
-  // Foto Locali per la Galleria
-  const [heroImages, setHeroImages] = useState([
-    { id: 1, title: 'Tramonto Cilento (Principale)', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80' }
+  // Foto Cloud per le sezioni
+  const [heroImages, setHeroImages] = useState<any[]>([
+    { id: 1, title: 'Tramonto Cilento (Principale)', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80', section: 'hero' }
   ]);
 
-  const [homeGridPhotos, setHomeGridPhotos] = useState([
-    { id: 1, title: 'Piazzole Camper tra gli Ulivi', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80' },
-    { id: 2, title: 'Spiagge di Caprioli', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80' },
-    { id: 3, title: 'Bar & Prodotti Tipici', url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80' }
+  const [homeGridPhotos, setHomeGridPhotos] = useState<any[]>([
+    { id: 1, title: 'Piazzole Camper tra gli Ulivi', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80', section: 'homeGrid' },
+    { id: 2, title: 'Spiagge di Caprioli', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80', section: 'homeGrid' },
+    { id: 3, title: 'Bar & Prodotti Tipici', url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80', section: 'homeGrid' }
   ]);
 
-  const [servicesGallery, setServicesGallery] = useState([
-    { id: 1, title: 'Panoramica Campeggio', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80' },
-    { id: 2, title: 'Costa Cilentana', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80' }
+  const [servicesGallery, setServicesGallery] = useState<any[]>([
+    { id: 1, title: 'Panoramica Campeggio', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80', section: 'servicesGallery' },
+    { id: 2, title: 'Costa Cilentana', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80', section: 'servicesGallery' }
   ]);
 
   const servicesList = [
@@ -116,13 +107,14 @@ export default function App() {
     { icon: Wifi, title: "Wi-Fi Gratuito", desc: "Connessione internet senza fili a disposizione degli ospiti." }
   ];
 
-  // Caricamento Dati Iniziali dal Database Cloud Supabase
+  // Caricamento Dati e Foto dal Database Cloud Supabase
   useEffect(() => {
     fetchCloudData();
   }, []);
 
   const fetchCloudData = async () => {
     try {
+      // 1. Impostazioni
       const { data: settingsData } = await supabase.from('site_settings').select('*').eq('id', 1).single();
       if (settingsData) {
         const formattedSettings = {
@@ -143,8 +135,9 @@ export default function App() {
         setSettingsForm(formattedSettings);
       }
 
+      // 2. Prenotazioni
       const { data: bookingsData } = await supabase.from('bookings').select('*').order('id', { ascending: false });
-      if (bookingsData && bookingsData.length > 0) {
+      if (bookingsData) {
         setBookingsList(bookingsData.map(b => ({
           id: b.id,
           name: b.name,
@@ -158,6 +151,7 @@ export default function App() {
         })));
       }
 
+      // 3. News
       const { data: newsData } = await supabase.from('news').select('*').order('id', { ascending: false });
       if (newsData && newsData.length > 0) {
         setNewsList(newsData.map(n => ({
@@ -167,9 +161,31 @@ export default function App() {
           content: n.content,
           imageUrl: n.image_url
         })));
+      } else {
+        setNewsList([
+          { 
+            id: 1, 
+            title: 'Guarda il video del nostro campeggio!', 
+            date: '1 Giugno 2026', 
+            content: 'Scopri la bellezza delle nostre piazzole e delle spiagge di Caprioli nel video ufficiale: https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            imageUrl: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
+          }
+        ]);
+      }
+
+      // 4. Foto Cloud dalla tabella site_photos
+      const { data: photosData } = await supabase.from('site_photos').select('*');
+      if (photosData && photosData.length > 0) {
+        const heroes = photosData.filter(p => p.section === 'hero');
+        const grid = photosData.filter(p => p.section === 'homeGrid');
+        const serv = photosData.filter(p => p.section === 'servicesGallery');
+
+        if (heroes.length > 0) setHeroImages(heroes);
+        if (grid.length > 0) setHomeGridPhotos(grid);
+        if (serv.length > 0) setServicesGallery(serv);
       }
     } catch (error) {
-      console.log('Sincronizzazione Supabase attiva');
+      console.log('Errore di sincronizzazione cloud:', error);
     }
   };
 
@@ -276,21 +292,17 @@ export default function App() {
     setNewNewsContent('');
   };
 
-  const handleDeleteNews = async (id: number) => {
-    await supabase.from('news').delete().eq('id', id);
-    fetchCloudData();
-  };
-
   const handleDeleteBooking = async (id: number) => {
     await supabase.from('bookings').delete().eq('id', id);
     fetchCloudData();
   };
 
-  // Gestione File Foto Locali
+  // Caricamento Foto su Supabase Storage
   const [photoTargetSection, setPhotoTargetSection] = useState<'hero' | 'homeGrid' | 'servicesGallery'>('hero');
   const [adminPhotoTitle, setAdminPhotoTitle] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [uploadError, setUploadError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -309,50 +321,71 @@ export default function App() {
     setAdminPass('');
   };
 
-  const handleLocalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      if (e.target.files.length > 5) {
-        setUploadError('Puoi selezionare un massimo di 5 foto per volta.');
-        setSelectedFiles(null);
-        e.target.value = '';
-      } else {
-        setUploadError('');
-        setSelectedFiles(e.target.files);
-      }
-    }
-  };
-
-  const handleAddLocalPhotosAdmin = (e: React.FormEvent) => {
+  const handleCloudPhotoUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFiles || selectedFiles.length === 0) return;
 
-    const newPhotosArray: { id: number; title: string; url: string }[] = [];
+    if (selectedFiles.length > 5) {
+      setUploadError('Puoi selezionare un massimo di 5 foto per volta.');
+      return;
+    }
 
-    Array.from(selectedFiles).forEach((file, index) => {
-      const reader = new FileReader();
-      reader.onload = (uploadEvent) => {
-        if (uploadEvent.target?.result) {
-          const photoObj = {
-            id: Date.now() + index,
-            title: adminPhotoTitle ? `${adminPhotoTitle} (${index + 1})` : file.name,
-            url: uploadEvent.target.result as string
-          };
-          newPhotosArray.push(photoObj);
+    setIsUploading(true);
+    setUploadError('');
 
-          if (newPhotosArray.length === selectedFiles.length) {
-            if (photoTargetSection === 'hero') setHeroImages([...newPhotosArray, ...heroImages]);
-            else if (photoTargetSection === 'homeGrid') setHomeGridPhotos([...newPhotosArray, ...homeGridPhotos]);
-            else if (photoTargetSection === 'servicesGallery') setServicesGallery([...newPhotosArray, ...servicesGallery]);
+    try {
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${i}.${fileExt}`;
+        const filePath = `${fileName}`;
 
-            setAdminPhotoTitle('');
-            setSelectedFiles(null);
-            setUploadError('');
-            alert(`${newPhotosArray.length} foto caricate per la sessione!`);
-          }
+        // Caricamento nel Bucket Storage 'photos'
+        const { error: uploadError } = await supabase.storage
+          .from('photos')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error('Errore storage:', uploadError);
+          alert(`Errore caricamento file ${file.name}`);
+          continue;
         }
-      };
-      reader.readAsDataURL(file);
-    });
+
+        // Recupero URL Pubblico
+        const { data: publicUrlData } = supabase.storage
+          .from('photos')
+          .getPublicUrl(filePath);
+
+        const publicUrl = publicUrlData.publicUrl;
+
+        // Salvataggio record nella tabella database site_photos
+        const photoRecord = {
+          id: Date.now() + i,
+          title: adminPhotoTitle ? `${adminPhotoTitle} (${i + 1})` : file.name,
+          url: publicUrl,
+          section: photoTargetSection
+        };
+
+        await supabase.from('site_photos').insert([photoRecord]);
+      }
+
+      alert('Foto caricate con successo su Supabase Storage e salvate per tutti i visitatori!');
+      setAdminPhotoTitle('');
+      setSelectedFiles(null);
+      fetchCloudData();
+    } catch (err) {
+      console.error(err);
+      alert("Errore imprevisto durante l'upload.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteCloudPhoto = async (id: number) => {
+    if (confirm('Vuoi davvero eliminare questa foto dal cloud?')) {
+      await supabase.from('site_photos').delete().eq('id', id);
+      fetchCloudData();
+    }
   };
 
   const extractUrl = (text: string) => {
@@ -723,7 +756,7 @@ export default function App() {
                 <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border">
                   <div>
                     <h1 className="text-2xl font-bold text-stone-900">CMS - Pannello Admin</h1>
-                    <p className="text-xs text-stone-500">Gestisci i dati della società e le prenotazioni in tempo reale.</p>
+                    <p className="text-xs text-stone-500">Gestisci i dati della società, le foto e le prenotazioni in tempo reale.</p>
                   </div>
                   <button onClick={handleAdminLogout} className="flex items-center space-x-2 bg-stone-100 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-red-50 hover:text-red-600 transition">
                     <LogOut className="w-4 h-4" />
@@ -771,40 +804,57 @@ export default function App() {
                   </form>
                 </div>
 
-                {/* MODULO IMPORT FOTO */}
+                {/* MODULO CARICAMENTO FOTO SU SUPABASE STORAGE */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <ImageIcon className="w-6 h-6 text-emerald-800" />
-                    <span>Importa Foto da Dispositivo Locale (Max 5 per volta)</span>
+                    <span>Carica Foto nel Cloud Supabase Storage (Max 5 per volta)</span>
                   </h3>
 
                   {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
 
-                  <form onSubmit={handleAddLocalPhotosAdmin} className="grid md:grid-cols-4 gap-4 items-end bg-stone-50 p-4 rounded-xl border">
+                  <form onSubmit={handleCloudPhotoUpload} className="grid md:grid-cols-4 gap-4 items-end bg-stone-50 p-4 rounded-xl border">
                     <div>
-                      <label className="block text-xs font-semibold uppercase mb-1">Sezione</label>
+                      <label className="block text-xs font-semibold uppercase mb-1">Sezione Destinazione</label>
                       <select value={photoTargetSection} onChange={(e: any) => setPhotoTargetSection(e.target.value)} className="w-full p-2.5 border rounded-lg text-sm bg-white">
-                        <option value="hero">1. Home Hero (Sfondo)</option>
-                        <option value="homeGrid">2. Home Grid (Griglia)</option>
+                        <option value="hero">1. Home Hero (Sfondo Principale)</option>
+                        <option value="homeGrid">2. Home Grid (Griglia in evidenza)</option>
                         <option value="servicesGallery">3. Servizi & Galleria</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase mb-1">Titolo/Descrizione</label>
-                      <input type="text" value={adminPhotoTitle} onChange={(e) => setAdminPhotoTitle(e.target.value)} className="w-full p-2.5 border rounded-lg text-sm bg-white" placeholder="Es. Foto Campeggio" />
+                      <label className="block text-xs font-semibold uppercase mb-1">Titolo Foto</label>
+                      <input type="text" value={adminPhotoTitle} onChange={(e) => setAdminPhotoTitle(e.target.value)} className="w-full p-2.5 border rounded-lg text-sm bg-white" placeholder="Es. Piazzola vista mare" />
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold uppercase mb-1">Seleziona File (Max 5)</label>
-                      <input type="file" accept="image/*" multiple onChange={handleLocalFileChange} className="w-full text-xs text-stone-600 file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-800" />
+                      <input type="file" accept="image/*" multiple onChange={(e) => setSelectedFiles(e.target.files)} className="w-full text-xs text-stone-600 file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-800" />
                     </div>
 
-                    <button type="submit" className="bg-emerald-900 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-emerald-800 transition flex items-center justify-center space-x-2">
+                    <button type="submit" disabled={isUploading} className="bg-emerald-900 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-emerald-800 transition flex items-center justify-center space-x-2 disabled:opacity-50">
                       <Upload className="w-4 h-4" />
-                      <span>Importa Foto</span>
+                      <span>{isUploading ? 'Caricamento...' : 'Carica nel Cloud'}</span>
                     </button>
                   </form>
+
+                  {/* Lista foto attualmente caricate con opzione di eliminazione */}
+                  <div className="pt-4 border-t">
+                    <h4 className="font-bold text-sm mb-3">Foto Gestite nel Database Cloud:</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[...heroImages, ...homeGridPhotos, ...servicesGallery].map((photo) => (
+                        <div key={photo.id} className="relative bg-stone-100 p-2 rounded-xl border flex flex-col justify-between">
+                          <img src={photo.url} alt={photo.title} className="w-full h-28 object-cover rounded-lg mb-2" />
+                          <p className="text-xs font-semibold truncate">{photo.title}</p>
+                          <span className="text-[10px] text-emerald-700 uppercase font-bold">{photo.section}</span>
+                          <button onClick={() => handleDeleteCloudPhoto(photo.id)} className="absolute top-3 right-3 bg-red-600 text-white p-1.5 rounded-full shadow hover:bg-red-700 transition">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* MODULO PRENOTAZIONI */}
