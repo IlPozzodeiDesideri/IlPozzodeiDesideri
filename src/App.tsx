@@ -94,11 +94,11 @@ export default function App() {
 
   // Lista Servizi Struttura
   const servicesList = [
-    { icon: Car, title: "Piazzole Camper", desc: "Spazi ampi e ben ombreggiati dedicati alla sosta camper." },
+    { icon: Car, title: "Piazzole Camper", desc: "Spazi ampi dedicati alla sosta camper." },
     { icon: Zap, title: "Energia Elettrica", desc: "Allaccio elettrico disponibile direttamente in piazzola." },
     { icon: Droplets, title: "Acqua in Piazzola", desc: "Punti di erogazione acqua potabile comodi e vicini." },
     { icon: RefreshCw, title: "Carico & Scarico", desc: "Area attrezzata per camper per carico e scarico acque." },
-    { icon: Utensils, title: "Bar & Ristoro", desc: "Colazioni, drink e prodotti tipici della tradizione cilentana." },
+    { icon: Utensils, title: "Bar & Ristoro", desc: "Colazioni, bevande e prodotti tipici della tradizione cilentana." },
     { icon: Wifi, title: "Wi-Fi Gratuito", desc: "Connessione internet senza fili a disposizione degli ospiti." }
   ];
 
