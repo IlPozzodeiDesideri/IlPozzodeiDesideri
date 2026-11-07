@@ -29,7 +29,8 @@ import {
   Printer,
   ExternalLink,
   Share2,
-  PlayCircle
+  PlayCircle,
+  Upload
 } from 'lucide-react';
 
 export default function App() {
@@ -106,10 +107,11 @@ export default function App() {
   // PDF selezionato
   const [selectedBookingForPdf, setSelectedBookingForPdf] = useState<any | null>(null);
 
-  // Form Foto Admin
+  // Form Foto Admin per Import Locale
   const [photoTargetSection, setPhotoTargetSection] = useState<'hero' | 'homeGrid' | 'servicesGallery'>('hero');
   const [adminPhotoTitle, setAdminPhotoTitle] = useState('');
-  const [adminPhotoUrl, setAdminPhotoUrl] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
+  const [uploadError, setUploadError] = useState('');
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,18 +157,54 @@ export default function App() {
     setTimeout(() => setBookingSuccess(false), 5000);
   };
 
-  const handleAddPhotoAdmin = (e: React.FormEvent) => {
+  // Caricamento Foto Locali (Max 5 alla volta)
+  const handleLocalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      if (e.target.files.length > 5) {
+        setUploadError('Puoi selezionare un massimo di 5 foto per volta.');
+        setSelectedFiles(null);
+        e.target.value = '';
+      } else {
+        setUploadError('');
+        setSelectedFiles(e.target.files);
+      }
+    }
+  };
+
+  const handleAddLocalPhotosAdmin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adminPhotoTitle || !adminPhotoUrl) return;
-    const newPhotoObj = { id: Date.now(), title: adminPhotoTitle, url: adminPhotoUrl };
+    if (!selectedFiles || selectedFiles.length === 0) {
+      setUploadError('Seleziona almeno un file di immagine dal tuo dispositivo.');
+      return;
+    }
 
-    if (photoTargetSection === 'hero') setHeroImages([newPhotoObj, ...heroImages]);
-    else if (photoTargetSection === 'homeGrid') setHomeGridPhotos([newPhotoObj, ...homeGridPhotos]);
-    else if (photoTargetSection === 'servicesGallery') setServicesGallery([newPhotoObj, ...servicesGallery]);
+    const newPhotosArray: { id: number; title: string; url: string }[] = [];
 
-    setAdminPhotoTitle('');
-    setAdminPhotoUrl('');
-    alert('Foto salvata con successo!');
+    Array.from(selectedFiles).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        if (uploadEvent.target?.result) {
+          const photoObj = {
+            id: Date.now() + index,
+            title: adminPhotoTitle ? `${adminPhotoTitle} (${index + 1})` : file.name,
+            url: uploadEvent.target.result as string
+          };
+          newPhotosArray.push(photoObj);
+
+          if (newPhotosArray.length === selectedFiles.length) {
+            if (photoTargetSection === 'hero') setHeroImages([...newPhotosArray, ...heroImages]);
+            else if (photoTargetSection === 'homeGrid') setHomeGridPhotos([...newPhotosArray, ...homeGridPhotos]);
+            else if (photoTargetSection === 'servicesGallery') setServicesGallery([...newPhotosArray, ...servicesGallery]);
+
+            setAdminPhotoTitle('');
+            setSelectedFiles(null);
+            setUploadError('');
+            alert(`${newPhotosArray.length} foto caricate con successo!`);
+          }
+        }
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleDeletePhoto = (id: number, section: 'hero' | 'homeGrid' | 'servicesGallery') => {
@@ -206,7 +244,7 @@ export default function App() {
     return matches ? matches[0] : null;
   };
 
-  // Convertitore per Player Video (YouTube, Vimeo, MP4)
+  // Convertitore per Player Video (YouTube, Vimeo)
   const getEmbedVideoUrl = (url: string | null) => {
     if (!url) return null;
     if (url.includes('youtube.com/watch?v=')) {
@@ -326,7 +364,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* News con PLAYER VIDEO e Pulsanti Social */}
+            {/* News con PLAYER VIDEO */}
             <section className="py-16 bg-emerald-950 text-white px-4">
               <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-emerald-900 pb-6">
@@ -343,7 +381,6 @@ export default function App() {
 
                     return (
                       <div key={item.id} className="bg-emerald-900/60 border border-emerald-800 rounded-2xl overflow-hidden flex flex-col">
-                        {/* Se è un video YouTube/Vimeo supportato mostra il Player Video integrato */}
                         {embedVideoUrl ? (
                           <div className="w-full h-64 bg-black relative">
                             <iframe 
@@ -367,7 +404,6 @@ export default function App() {
                             </p>
                           </div>
 
-                          {/* Pulsante Interattivo per Aprire il Link Social o Video in Nuova Scheda */}
                           {rawUrl && (
                             <div className="pt-3 border-t border-emerald-800">
                               <a
@@ -446,9 +482,9 @@ export default function App() {
               </div>
 
               {bookingSuccess && (
-                <div className="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-600 text-emerald-800 text-sm rounded flex items-center space-x-2">
+                <div className="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-600 text-emerald-800 text-sm rounded flex items-center space-x-2 font-medium">
                   <CheckCircle className="w-5 h-5 flex-shrink-0" />
-                  <span>Richiesta inviata con successo! L'amministratore la riceverà nel pannello di controllo.</span>
+                  <span>Richiesta inviata con successo!</span>
                 </div>
               )}
 
@@ -559,7 +595,7 @@ export default function App() {
                       <span>Accesso Autorizzato</span>
                     </span>
                     <h1 className="text-2xl font-bold text-stone-900">CMS - Pannello di Controllo</h1>
-                    <p className="text-xs text-stone-500">Gestione foto delle 3 sezioni, News/Social/Video e Prenotazioni PDF.</p>
+                    <p className="text-xs text-stone-500">Importazione foto locali (max 5), News/Video e Prenotazioni PDF.</p>
                   </div>
                   
                   <button onClick={handleAdminLogout} className="flex items-center space-x-2 bg-stone-100 text-stone-700 px-4 py-2 rounded-xl hover:bg-red-50 hover:text-red-600 border border-stone-200 transition">
@@ -568,36 +604,48 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Gestione Foto */}
+                {/* Gestione Foto da Locale */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
                   <div className="flex items-center space-x-2 border-b pb-4">
                     <ImageIcon className="w-6 h-6 text-emerald-800" />
-                    <h3 className="text-xl font-bold">Gestione Foto (3 Sezioni)</h3>
+                    <h3 className="text-xl font-bold">Importa Foto da Dispositivo Locale (Max 5 per volta)</h3>
                   </div>
 
-                  <form onSubmit={handleAddPhotoAdmin} className="grid md:grid-cols-4 gap-4 items-end bg-stone-50 p-4 rounded-xl border">
+                  {uploadError && (
+                    <div className="p-3 bg-red-50 border-l-4 border-red-500 text-red-700 text-xs rounded">
+                      {uploadError}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleAddLocalPhotosAdmin} className="grid md:grid-cols-4 gap-4 items-end bg-stone-50 p-4 rounded-xl border">
                     <div>
-                      <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Destinazione</label>
+                      <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Sezione Destinazione</label>
                       <select value={photoTargetSection} onChange={(e: any) => setPhotoTargetSection(e.target.value)} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm bg-white">
-                        <option value="hero">1. Home Hero</option>
-                        <option value="homeGrid">2. Home Grid</option>
+                        <option value="hero">1. Home Hero (Sfondo)</option>
+                        <option value="homeGrid">2. Home Grid (Griglia)</option>
                         <option value="servicesGallery">3. Servizi & Galleria</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Titolo Foto</label>
-                      <input type="text" required value={adminPhotoTitle} onChange={(e) => setAdminPhotoTitle(e.target.value)} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm bg-white" placeholder="Es. Titolo" />
+                      <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Titolo/Descrizione Immagini</label>
+                      <input type="text" value={adminPhotoTitle} onChange={(e) => setAdminPhotoTitle(e.target.value)} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm bg-white" placeholder="Es. Foto Campeggio" />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">URL Immagine</label>
-                      <input type="url" required value={adminPhotoUrl} onChange={(e) => setAdminPhotoUrl(e.target.value)} className="w-full p-2.5 border rounded-lg border-stone-300 text-sm bg-white" placeholder="https://..." />
+                      <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Seleziona File (Max 5)</label>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        multiple 
+                        onChange={handleLocalFileChange} 
+                        className="w-full text-xs text-stone-600 file:mr-2 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-100 file:text-emerald-800 hover:file:bg-emerald-200" 
+                      />
                     </div>
 
                     <button type="submit" className="bg-emerald-900 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-emerald-800 transition flex items-center justify-center space-x-2">
-                      <PlusCircle className="w-4 h-4" />
-                      <span>Salva Foto</span>
+                      <Upload className="w-4 h-4" />
+                      <span>Importa Foto</span>
                     </button>
                   </form>
 
