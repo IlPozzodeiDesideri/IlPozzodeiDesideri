@@ -38,9 +38,6 @@ import {
   Save
 } from 'lucide-react';
 
-// =========================================================================
-//  CONFIGURAZIONE SUPABASE
-// =========================================================================
 const SUPABASE_URL = 'https://jyyfdibfzqitdnmxpsdj.supabase.co'; 
 const SUPABASE_ANON_KEY = 'sb_publishable_3G95fXQNlPt51fze4ztDBQ_2lmKygNP';
 
@@ -50,7 +47,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'services' | 'booking' | 'admin'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Dati Società e Impostazioni Struttura
   const [siteSettings, setSiteSettings] = useState({
     siteName: 'Il Pozzo dei Desideri',
     subTitle: 'Camping • Caprioli di Pisciotta',
@@ -66,7 +62,6 @@ export default function App() {
     longitude: 15.271916
   });
 
-  // Autenticazione Admin
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminUser, setAdminUser] = useState('');
   const [adminPass, setAdminPass] = useState('');
@@ -78,12 +73,9 @@ export default function App() {
   };
 
   const [settingsForm, setSettingsForm] = useState({ ...siteSettings });
-
-  // News & Prenotazioni
   const [newsList, setNewsList] = useState<any[]>([]);
   const [bookingsList, setBookingsList] = useState<any[]>([]);
 
-  // Foto per le Sezioni
   const [heroImages, setHeroImages] = useState<any[]>([
     { id: 1, title: 'Tramonto Cilento (Principale)', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80', section: 'hero' }
   ]);
@@ -108,14 +100,12 @@ export default function App() {
     { icon: Wifi, title: "Wi-Fi Gratuito", desc: "Connessione internet senza fili a disposizione degli ospiti." }
   ];
 
-  // Caricamento Dati Iniziali dal Database Supabase
   useEffect(() => {
     fetchCloudData();
   }, []);
 
   const fetchCloudData = async () => {
     try {
-      // 1. Carica Impostazioni Generali
       const { data: settingsData } = await supabase.from('site_settings').select('*');
       if (settingsData && settingsData.length > 0) {
         const s = settingsData[0];
@@ -137,10 +127,9 @@ export default function App() {
         setSettingsForm(formatted);
       }
 
-      // 2. Carica Prenotazioni
       const { data: bookingsData } = await supabase.from('bookings').select('*').order('id', { ascending: false });
       if (bookingsData) {
-        setBookingsList(bookingsData.map(b => ({
+        setBookingsList(bookingsData.map((b: any) => ({
           id: b.id,
           name: b.name,
           email: b.email,
@@ -153,10 +142,9 @@ export default function App() {
         })));
       }
 
-      // 3. Carica News
       const { data: newsData } = await supabase.from('news').select('*').order('id', { ascending: false });
       if (newsData && newsData.length > 0) {
-        setNewsList(newsData.map(n => ({
+        setNewsList(newsData.map((n: any) => ({
           id: n.id,
           title: n.title,
           date: n.date,
@@ -165,12 +153,11 @@ export default function App() {
         })));
       }
 
-      // 4. Carica Foto
       const { data: photosData } = await supabase.from('site_photos').select('*');
       if (photosData && photosData.length > 0) {
-        const heroes = photosData.filter(p => p.section === 'hero');
-        const grid = photosData.filter(p => p.section === 'homeGrid');
-        const serv = photosData.filter(p => p.section === 'servicesGallery');
+        const heroes = photosData.filter((p: any) => p.section === 'hero');
+        const grid = photosData.filter((p: any) => p.section === 'homeGrid');
+        const serv = photosData.filter((p: any) => p.section === 'servicesGallery');
 
         if (heroes.length > 0) setHeroImages(heroes);
         if (grid.length > 0) setHomeGridPhotos(grid);
@@ -181,7 +168,6 @@ export default function App() {
     }
   };
 
-  // Salvataggio Impostazioni Struttura
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
@@ -211,7 +197,6 @@ export default function App() {
     }
   };
 
-  // Form Cliente Prenotazione
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -256,7 +241,6 @@ export default function App() {
     }
   };
 
-  // Modale Lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxAlbum, setLightboxAlbum] = useState<{ id: number; title: string; url: string }[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -270,7 +254,6 @@ export default function App() {
   const nextLightboxImage = () => setLightboxIndex((prev) => (prev + 1) % lightboxAlbum.length);
   const prevLightboxImage = () => setLightboxIndex((prev) => (prev - 1 + lightboxAlbum.length) % lightboxAlbum.length);
 
-  // Gestione News
   const [newNewsTitle, setNewNewsTitle] = useState('');
   const [newNewsContent, setNewNewsContent] = useState('');
 
@@ -300,7 +283,6 @@ export default function App() {
     fetchCloudData();
   };
 
-  // Gestione Foto (Base64 / Local Upload)
   const [photoTargetSection, setPhotoTargetSection] = useState<'hero' | 'homeGrid' | 'servicesGallery'>('hero');
   const [adminPhotoTitle, setAdminPhotoTitle] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
@@ -339,7 +321,6 @@ export default function App() {
             section: photoTargetSection
           };
 
-          // Salva su Database Supabase
           const { error } = await supabase.from('site_photos').insert([photoObj]);
           if (!error) {
             fetchCloudData();
@@ -383,7 +364,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-800 font-sans flex flex-col justify-between">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-emerald-950/95 backdrop-blur-md text-stone-100 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div onClick={() => setActiveTab('home')} className="cursor-pointer flex items-center space-x-2">
@@ -422,9 +402,7 @@ export default function App() {
         )}
       </header>
 
-      {/* Main Dynamic Content */}
       <main className="flex-grow">
-        {/* HOME VISTA */}
         {activeTab === 'home' && (
           <div>
             <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden">
@@ -460,7 +438,6 @@ export default function App() {
               </div>
             </section>
 
-            {/* Banner Servizi Rapidi */}
             <section className="bg-emerald-900 text-stone-100 py-6 px-4 border-y border-emerald-800">
               <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
                 {servicesList.slice(0, 5).map((s, idx) => (
@@ -472,7 +449,6 @@ export default function App() {
               </div>
             </section>
 
-            {/* Griglia Foto Home */}
             <section className="py-20 px-4 max-w-7xl mx-auto">
               <div className="text-center mb-14">
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900">Vivi {siteSettings.siteName}</h2>
@@ -503,7 +479,6 @@ export default function App() {
               </div>
             </section>
 
-            {/* MAPPA GOOGLE MAPS */}
             <section className="py-16 bg-stone-100 border-t border-stone-200 px-4">
               <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-10">
@@ -525,7 +500,6 @@ export default function App() {
               </div>
             </section>
 
-            {/* News & Video */}
             <section className="py-16 bg-emerald-950 text-white px-4">
               <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-emerald-900 pb-6">
@@ -589,7 +563,6 @@ export default function App() {
           </div>
         )}
 
-        {/* SERVIZI E GALLERIA */}
         {activeTab === 'services' && (
           <div className="py-12 px-4 max-w-7xl mx-auto space-y-16">
             <div>
@@ -643,7 +616,6 @@ export default function App() {
           </div>
         )}
 
-        {/* PRENOTAZIONI */}
         {activeTab === 'booking' && (
           <div className="py-12 px-4 max-w-3xl mx-auto">
             <div className="bg-white p-8 rounded-2xl shadow-md border border-stone-200">
@@ -709,7 +681,6 @@ export default function App() {
           </div>
         )}
 
-        {/* ADMIN VISTA */}
         {activeTab === 'admin' && (
           <div>
             {!isAdminAuthenticated ? (
@@ -740,7 +711,6 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* MODULO DATI SOCIETÀ */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <Settings className="w-6 h-6 text-emerald-800" />
@@ -781,7 +751,6 @@ export default function App() {
                   </form>
                 </div>
 
-                {/* MODULO CARICAMENTO FOTO */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <ImageIcon className="w-6 h-6 text-emerald-800" />
@@ -814,7 +783,6 @@ export default function App() {
                     </button>
                   </form>
 
-                  {/* Foto Caricate */}
                   <div className="pt-4 border-t">
                     <h4 className="font-bold text-sm mb-3">Foto Gestite nel Cloud:</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -832,7 +800,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* MODULO PRENOTAZIONI */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <Calendar className="w-6 h-6 text-emerald-800" />
@@ -865,7 +832,6 @@ export default function App() {
                       )}
                     </div>
 
-                    {/* Scheda PDF */}
                     <div className="bg-stone-50 p-6 rounded-2xl border">
                       <div className="flex justify-between items-center border-b pb-3 mb-4">
                         <h4 className="font-bold text-sm">Modulo Riepilogo Prenotazione</h4>
@@ -896,7 +862,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* MODULO NEWS */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <FileText className="w-6 h-6 text-emerald-800" />
@@ -918,7 +883,6 @@ export default function App() {
         )}
       </main>
 
-      {/* MODAL LIGHTBOX */}
       {lightboxOpen && lightboxAlbum.length > 0 && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
           <button onClick={() => setLightboxOpen(false)} className="absolute top-6 right-6 text-white bg-white/10 hover:bg-white/20 p-3 rounded-full transition">
@@ -941,7 +905,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Footer */}
       <footer className="bg-stone-900 text-stone-400 py-10 px-4 border-t border-stone-800">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8 text-sm">
           <div>
