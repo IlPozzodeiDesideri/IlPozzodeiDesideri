@@ -9,18 +9,20 @@ import {
   Mail, 
   Instagram, 
   Facebook, 
-  ShieldCheck, 
   Menu, 
   X, 
   Utensils, 
   Wifi, 
   Car, 
-  Sparkles, 
   Lock, 
   LogOut, 
   User, 
   CheckCircle, 
-  AlertCircle 
+  AlertCircle,
+  PlusCircle,
+  Image as ImageIcon,
+  FileText,
+  Trash2
 } from 'lucide-react';
 
 export default function App() {
@@ -33,11 +35,25 @@ export default function App() {
   const [adminPass, setAdminPass] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Credenziali Admin (modificabili a piacere)
+  // Credenziali Admin
   const CREDENTIALS = {
     username: 'admin',
     password: 'pozzo2026'
   };
+
+  // Stato dinamico del CMS Admin (News e Foto)
+  const [newsList, setNewsList] = useState([
+    { id: 1, title: 'Apertura Stagione Estiva', date: '2026-06-01', content: 'Vi aspettiamo per una nuova stagione immersi nel verde del Cilento.' }
+  ]);
+  const [newNewsTitle, setNewNewsTitle] = useState('');
+  const [newNewsContent, setNewNewsContent] = useState('');
+
+  const [galleryPhotos, setGalleryPhotos] = useState([
+    { id: 1, title: 'Piazzole tra gli ulivi', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80' },
+    { id: 2, title: 'Tramonto sul mare', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80' }
+  ]);
+  const [newPhotoTitle, setNewPhotoTitle] = useState('');
+  const [newPhotoUrl, setNewPhotoUrl] = useState('');
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +69,41 @@ export default function App() {
     setIsAdminAuthenticated(false);
     setAdminUser('');
     setAdminPass('');
+  };
+
+  const handleAddNews = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNewsTitle || !newNewsContent) return;
+    const newItem = {
+      id: Date.now(),
+      title: newNewsTitle,
+      date: new Date().toISOString().split('T')[0],
+      content: newNewsContent
+    };
+    setNewsList([newItem, ...newsList]);
+    setNewNewsTitle('');
+    setNewNewsContent('');
+  };
+
+  const handleDeleteNews = (id: number) => {
+    setNewsList(newsList.filter(item => item.id !== id));
+  };
+
+  const handleAddPhoto = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPhotoTitle || !newPhotoUrl) return;
+    const newPhoto = {
+      id: Date.now(),
+      title: newPhotoTitle,
+      url: newPhotoUrl
+    };
+    setGalleryPhotos([newPhoto, ...galleryPhotos]);
+    setNewPhotoTitle('');
+    setNewPhotoUrl('');
+  };
+
+  const handleDeletePhoto = (id: number) => {
+    setGalleryPhotos(galleryPhotos.filter(item => item.id !== id));
   };
 
   return (
@@ -83,7 +134,7 @@ export default function App() {
               onClick={() => setActiveTab('services')}
               className={`hover:text-emerald-300 transition ${activeTab === 'services' ? 'text-emerald-400 font-semibold' : ''}`}
             >
-              Servizi
+              Servizi & Gallerìa
             </button>
             <button 
               onClick={() => setActiveTab('booking')}
@@ -122,7 +173,7 @@ export default function App() {
               onClick={() => { setActiveTab('services'); setMobileMenuOpen(false); }}
               className="block w-full text-left py-2 font-medium"
             >
-              Servizi
+              Servizi & Gallerìa
             </button>
             <button 
               onClick={() => { setActiveTab('booking'); setMobileMenuOpen(false); }}
@@ -146,7 +197,6 @@ export default function App() {
         {/* HOME VISTA */}
         {activeTab === 'home' && (
           <div>
-            {/* Hero Section */}
             <section className="relative bg-emerald-900 text-white py-24 px-4 text-center overflow-hidden">
               <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#34d399_1px,transparent_1px)] [background-size:16px_16px]"></div>
               <div className="max-w-4xl mx-auto relative z-10">
@@ -176,57 +226,65 @@ export default function App() {
               </div>
             </section>
 
-            {/* Highlights */}
+            {/* News in evidenza nella Home */}
             <section className="py-16 px-4 max-w-7xl mx-auto">
-              <div className="grid md:grid-cols-3 gap-8">
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 text-center">
-                  <div className="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Trees className="w-6 h-6" />
+              <div className="text-center mb-10">
+                <h2 className="text-2xl font-bold text-stone-900">Ultime News & Avvisi</h2>
+                <p className="text-stone-600 text-sm">Aggiornamenti direttamente dal campeggio</p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                {newsList.map(item => (
+                  <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+                    <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full">{item.date}</span>
+                    <h3 className="text-xl font-bold mt-2 mb-2">{item.title}</h3>
+                    <p className="text-stone-600 text-sm">{item.content}</p>
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Natura Incontaminata</h3>
-                  <p className="text-stone-600 text-sm">Piazzole ombreggiate immerse negli olivi secolari del Parco Nazionale del Cilento.</p>
-                </div>
-
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 text-center">
-                  <div className="w-12 h-12 bg-sky-100 text-sky-800 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Waves className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">A due passi dal Mare</h3>
-                  <p className="text-stone-600 text-sm">Spiagge dorate e acque trasparenti facilmente raggiungibili in pochi minuti.</p>
-                </div>
-
-                <div className="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 text-center">
-                  <div className="w-12 h-12 bg-amber-100 text-amber-800 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Sun className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-2">Relax & Ospitalità</h3>
-                  <p className="text-stone-600 text-sm">Un'atmosfera familiare pensata per garantire pace, pulizia e spensieratezza.</p>
-                </div>
+                ))}
               </div>
             </section>
           </div>
         )}
 
-        {/* SERVIZI VISTA */}
+        {/* SERVIZI E GALLERIA VISTA */}
         {activeTab === 'services' && (
-          <div className="py-12 px-4 max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-stone-900">I Nostri Servizi</h2>
-              <p className="text-stone-600 mt-2">Tutto il necessario per il tuo soggiorno ideale</p>
+          <div className="py-12 px-4 max-w-7xl mx-auto space-y-16">
+            <div>
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-stone-900">I Nostri Servizi</h2>
+                <p className="text-stone-600 mt-2">Tutto il necessario per il tuo soggiorno ideale</p>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { icon: Trees, title: "Piazzole Tende/Camper", desc: "Spazi ampi, ombreggiati e con allaccio elettrico." },
+                  { icon: Wifi, title: "Wi-Fi Gratuito", desc: "Connessione internet disponibile nelle aree comuni." },
+                  { icon: Utensils, title: "Ristoro & Bar", desc: "Prodotti locali tipici cilentani e colazioni vista natura." },
+                  { icon: Car, title: "Parcheggio Interno", desc: "Posto auto/moto custodito e riservato agli ospiti." },
+                ].map((item, idx) => (
+                  <div key={idx} className="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <item.icon className="w-8 h-8 text-emerald-800 mb-3" />
+                    <h4 className="font-bold text-lg mb-1">{item.title}</h4>
+                    <p className="text-stone-600 text-sm">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { icon: Trees, title: "Piazzole Tende/Camper", desc: "Spazi ampi, ombreggiati e con allaccio elettrico." },
-                { icon: Wifi, title: "Wi-Fi Gratuito", desc: "Connessione internet disponibile nelle aree comuni." },
-                { icon: Utensils, title: "Ristoro & Bar", desc: "Prodotti locali tipici cilentani e colazioni vista natura." },
-                { icon: Car, title: "Parcheggio Interno", desc: "Posto auto/moto custodito e riservato agli ospiti." },
-              ].map((item, idx) => (
-                <div key={idx} className="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
-                  <item.icon className="w-8 h-8 text-emerald-800 mb-3" />
-                  <h4 className="font-bold text-lg mb-1">{item.title}</h4>
-                  <p className="text-stone-600 text-sm">{item.desc}</p>
-                </div>
-              ))}
+
+            {/* Galleria Fotografica Dinamica */}
+            <div>
+              <div className="text-center mb-10">
+                <h2 className="text-3xl font-bold text-stone-900">Galleria Fotografica</h2>
+                <p className="text-stone-600 mt-1">Scatti dal nostro campeggio</p>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {galleryPhotos.map(photo => (
+                  <div key={photo.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200">
+                    <img src={photo.url} alt={photo.title} className="w-48 h-56 object-cover w-full" />
+                    <div className="p-4">
+                      <h4 className="font-bold text-stone-800">{photo.title}</h4>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -286,11 +344,10 @@ export default function App() {
           </div>
         )}
 
-        {/* ADMIN VISTA (PROTECTION & DASHBOARD) */}
+        {/* ADMIN VISTA (LOGIN + CMS COMPLETO) */}
         {activeTab === 'admin' && (
           <div>
             {!isAdminAuthenticated ? (
-              /* FORM LOGIN ADMIN */
               <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
                 <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-stone-200">
                   <div className="text-center mb-8">
@@ -298,7 +355,7 @@ export default function App() {
                       <Lock className="w-7 h-7 text-emerald-900" />
                     </div>
                     <h2 className="text-2xl font-bold text-stone-900">Area Riservata Admin</h2>
-                    <p className="text-stone-500 text-sm mt-1">Inserisci le credenziali per accedere al gestionale</p>
+                    <p className="text-stone-500 text-sm mt-1">Inserisci le credenziali per gestire news e foto</p>
                   </div>
 
                   {loginError && (
@@ -318,7 +375,7 @@ export default function App() {
                           value={adminUser}
                           onChange={(e) => setAdminUser(e.target.value)}
                           className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none"
-                          placeholder="Inserisci username"
+                          placeholder="admin"
                         />
                         <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                       </div>
@@ -333,7 +390,7 @@ export default function App() {
                           value={adminPass}
                           onChange={(e) => setAdminPass(e.target.value)}
                           className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none"
-                          placeholder="Inserisci password"
+                          placeholder="pozzo2026"
                         />
                         <Lock className="w-4 h-4 text-stone-400 absolute left-3.5 top-3.5" />
                       </div>
@@ -349,16 +406,16 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              /* DASHBOARD GESTIONALE ADMIN */
-              <div className="py-10 px-4 max-w-7xl mx-auto">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-stone-200 gap-4">
+              /* DASHBOARD CMS ADMIN (GESTIONE NEWS & FOTO) */
+              <div className="py-10 px-4 max-w-7xl mx-auto space-y-10">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-sm border border-stone-200 gap-4">
                   <div>
                     <span className="inline-flex items-center space-x-1.5 text-xs font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full mb-1">
                       <CheckCircle className="w-3.5 h-3.5" />
-                      <span>Autenticato</span>
+                      <span>Accesso Autorizzato</span>
                     </span>
-                    <h1 className="text-2xl font-bold text-stone-900">Pannello Gestione Campeggio</h1>
-                    <p className="text-xs text-stone-500">Utente connesso: <strong>{adminUser}</strong></p>
+                    <h1 className="text-2xl font-bold text-stone-900">CMS - Gestione Contenuti</h1>
+                    <p className="text-xs text-stone-500">Benvenuto, <strong>{adminUser}</strong>. Da qui puoi pubblicare news e aggiungere foto.</p>
                   </div>
                   
                   <button
@@ -370,23 +427,121 @@ export default function App() {
                   </button>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-                    <h3 className="font-bold text-lg mb-2 text-stone-800">Prenotazioni In Arrivo</h3>
-                    <p className="text-3xl font-extrabold text-emerald-800">12</p>
-                    <p className="text-xs text-stone-500 mt-1">Richieste confermate per questa settimana</p>
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Sezione Gestione News */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
+                    <div className="flex items-center space-x-2 border-b pb-4">
+                      <FileText className="w-6 h-6 text-emerald-800" />
+                      <h3 className="text-xl font-bold">Gestione News & Avvisi</h3>
+                    </div>
+
+                    <form onSubmit={handleAddNews} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Titolo News</label>
+                        <input
+                          type="text"
+                          required
+                          value={newNewsTitle}
+                          onChange={(e) => setNewNewsTitle(e.target.value)}
+                          className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none text-sm"
+                          placeholder="Es. Evento Sagra del Cilento"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Contenuto</label>
+                        <textarea
+                          required
+                          rows={3}
+                          value={newNewsContent}
+                          onChange={(e) => setNewNewsContent(e.target.value)}
+                          className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none text-sm"
+                          placeholder="Scrivi i dettagli dell'avviso..."
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="w-full bg-emerald-900 text-white font-semibold py-2.5 rounded-xl hover:bg-emerald-800 transition flex items-center justify-center space-x-2"
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                        <span>Pubblica News</span>
+                      </button>
+                    </form>
+
+                    <div className="space-y-3 pt-4 border-t">
+                      <h4 className="font-semibold text-sm text-stone-700">News Attive ({newsList.length})</h4>
+                      {newsList.map(item => (
+                        <div key={item.id} className="flex justify-between items-center p-3 bg-stone-50 rounded-xl border border-stone-200">
+                          <div>
+                            <p className="font-bold text-sm text-stone-800">{item.title}</p>
+                            <span className="text-xs text-stone-500">{item.date}</span>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteNews(item.id)}
+                            className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-                    <h3 className="font-bold text-lg mb-2 text-stone-800">Piazzole Libere</h3>
-                    <p className="text-3xl font-extrabold text-amber-600">8 / 25</p>
-                    <p className="text-xs text-stone-500 mt-1">Disponibilità attuale in struttura</p>
-                  </div>
+                  {/* Sezione Gestione Galleria Foto */}
+                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
+                    <div className="flex items-center space-x-2 border-b pb-4">
+                      <ImageIcon className="w-6 h-6 text-emerald-800" />
+                      <h3 className="text-xl font-bold">Gestione Galleria Foto</h3>
+                    </div>
 
-                  <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-                    <h3 className="font-bold text-lg mb-2 text-stone-800">Messaggi Clienti</h3>
-                    <p className="text-3xl font-extrabold text-sky-700">3</p>
-                    <p className="text-xs text-stone-500 mt-1">Richieste d'informazione da leggere</p>
+                    <form onSubmit={handleAddPhoto} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Titolo Foto</label>
+                        <input
+                          type="text"
+                          required
+                          value={newPhotoTitle}
+                          onChange={(e) => setNewPhotoTitle(e.target.value)}
+                          className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none text-sm"
+                          placeholder="Es. Nuova Piscina / Piazzola"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">URL Immagine (Link Web)</label>
+                        <input
+                          type="url"
+                          required
+                          value={newPhotoUrl}
+                          onChange={(e) => setNewPhotoUrl(e.target.value)}
+                          className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none text-sm"
+                          placeholder="https://images.unsplash.com/..."
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="w-full bg-emerald-900 text-white font-semibold py-2.5 rounded-xl hover:bg-emerald-800 transition flex items-center justify-center space-x-2"
+                      >
+                        <PlusCircle className="w-4 h-4" />
+                        <span>Aggiungi alla Galleria</span>
+                      </button>
+                    </form>
+
+                    <div className="space-y-3 pt-4 border-t">
+                      <h4 className="font-semibold text-sm text-stone-700">Foto Caricate ({galleryPhotos.length})</h4>
+                      {galleryPhotos.map(photo => (
+                        <div key={photo.id} className="flex justify-between items-center p-3 bg-stone-50 rounded-xl border border-stone-200">
+                          <div className="flex items-center space-x-3">
+                            <img src={photo.url} alt={photo.title} className="w-12 h-12 object-cover rounded-lg" />
+                            <p className="font-bold text-sm text-stone-800">{photo.title}</p>
+                          </div>
+                          <button
+                            onClick={() => handleDeletePhoto(photo.id)}
+                            className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
