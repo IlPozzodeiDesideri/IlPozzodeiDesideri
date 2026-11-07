@@ -28,12 +28,14 @@ import {
   Eye,
   Printer,
   ExternalLink,
-  Share2,
   PlayCircle,
   Upload,
   ChevronLeft,
   ChevronRight,
-  Maximize2
+  Maximize2,
+  Zap,
+  Droplets,
+  RefreshCw
 } from 'lucide-react';
 
 export default function App() {
@@ -58,9 +60,9 @@ export default function App() {
 
   // Griglia Home (3 Card)
   const [homeGridPhotos, setHomeGridPhotos] = useState([
-    { id: 1, title: 'Piazzole tra gli ulivi', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80' },
+    { id: 1, title: 'Piazzole Camper tra gli Ulivi', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80' },
     { id: 2, title: 'Spiagge di Caprioli', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80' },
-    { id: 3, title: 'Prodotti Tipici & Ristoro', url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80' }
+    { id: 3, title: 'Bar & Prodotti Tipici', url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80' }
   ]);
 
   // Galleria Servizi
@@ -69,7 +71,17 @@ export default function App() {
     { id: 2, title: 'Costa Cilentana', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80' }
   ]);
 
-  // Stato Lightbox / Ingrandimento Foto & Album Sfogliabile
+  // Lista Servizi Struttura
+  const servicesList = [
+    { icon: Car, title: "Piazzole Camper", desc: "Spazi ampi e ben ombreggiati dedicati alla sosta camper." },
+    { icon: Zap, title: "Energia Elettrica", desc: "Allaccio elettrico disponibile direttamente in piazzola." },
+    { icon: Droplets, title: "Acqua in Piazzola", desc: "Punti di erogazione acqua potabile comodi e vicini." },
+    { icon: RefreshCw, title: "Carico & Scarico", desc: "Area attrezzata per camper per carico e scarico acque." },
+    { icon: Utensils, title: "Bar & Ristoro", desc: "Colazioni, drink e prodotti tipici della tradizione cilentana." },
+    { icon: Wifi, title: "Wi-Fi Gratuito", desc: "Connessione internet senza fili a disposizione degli ospiti." }
+  ];
+
+  // Stato Lightbox per album foto sfogliabile
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxAlbum, setLightboxAlbum] = useState<{ id: number; title: string; url: string }[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -88,7 +100,7 @@ export default function App() {
     setLightboxIndex((prev) => (prev - 1 + lightboxAlbum.length) % lightboxAlbum.length);
   };
 
-  // News con supporto Video Embed e Link Social
+  // News & Video Social
   const [newsList, setNewsList] = useState([
     { 
       id: 1, 
@@ -110,8 +122,8 @@ export default function App() {
       phone: '+39 333 1234567',
       checkIn: '2026-07-01',
       checkOut: '2026-07-15',
-      accommodation: 'Piazzola Tenda',
-      notes: 'Richiesta piazzola vicina ai servizi igienici, arrivo previsto ore 14:00.',
+      accommodation: 'Piazzola Camper',
+      notes: 'Richiesta piazzola vicino al punto acqua.',
       createdAt: '2026-06-01 10:30'
     }
   ]);
@@ -122,7 +134,7 @@ export default function App() {
   const [clientPhone, setClientPhone] = useState('');
   const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
-  const [accommodationType, setAccommodationType] = useState('Piazzola Tenda');
+  const [accommodationType, setAccommodationType] = useState('Piazzola Camper');
   const [clientNotes, setClientNotes] = useState('');
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
@@ -327,24 +339,15 @@ export default function App() {
         {/* HOME VISTA */}
         {activeTab === 'home' && (
           <div>
-            {/* Hero con Ingrandimento al Clic */}
-            <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden group">
+            {/* Hero Section */}
+            <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden">
               <div 
-                onClick={() => openLightbox(heroImages, 0)}
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transform transition duration-1000 cursor-pointer"
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transform transition duration-1000"
                 style={{ backgroundImage: `url('${heroImages[0]?.url || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80'}')` }}
               ></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/60 to-emerald-950/40 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/60 to-emerald-950/40"></div>
 
-              <button 
-                onClick={() => openLightbox(heroImages, 0)}
-                className="absolute top-6 right-6 bg-black/40 hover:bg-black/60 text-white p-3 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition z-20"
-                title="Ingrandisci Sfondo"
-              >
-                <Maximize2 className="w-5 h-5" />
-              </button>
-              
-              <div className="max-w-4xl mx-auto relative z-10 space-y-6 pointer-events-auto">
+              <div className="max-w-4xl mx-auto relative z-10 space-y-6">
                 <span className="bg-emerald-800/80 backdrop-blur-md text-emerald-200 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full inline-flex items-center space-x-2">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Camping • Caprioli di Pisciotta</span>
@@ -364,9 +367,21 @@ export default function App() {
                     <ArrowRight className="w-5 h-5" />
                   </button>
                   <button onClick={() => setActiveTab('services')} className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold px-8 py-4 rounded-xl border border-white/30 transition">
-                    Esplora la Struttura
+                    Esplora i Servizi
                   </button>
                 </div>
+              </div>
+            </section>
+
+            {/* Banner Servizi Rapidi in Home */}
+            <section className="bg-emerald-900 text-stone-100 py-6 px-4 border-y border-emerald-800">
+              <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                {servicesList.slice(0, 5).map((s, idx) => (
+                  <div key={idx} className="flex flex-col items-center p-2">
+                    <s.icon className="w-6 h-6 text-emerald-400 mb-1" />
+                    <span className="text-xs font-bold text-stone-200">{s.title}</span>
+                  </div>
+                ))}
               </div>
             </section>
 
@@ -388,7 +403,7 @@ export default function App() {
                     <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/30 to-transparent p-6 flex flex-col justify-end text-white">
                       <div className="flex justify-between items-end">
                         <div>
-                          {idx === 0 && <Trees className="w-8 h-8 text-emerald-400 mb-2" />}
+                          {idx === 0 && <Car className="w-8 h-8 text-emerald-400 mb-2" />}
                           {idx === 1 && <Waves className="w-8 h-8 text-sky-400 mb-2" />}
                           {idx >= 2 && <Utensils className="w-8 h-8 text-amber-400 mb-2" />}
                           <h3 className="text-2xl font-bold">{photo.title}</h3>
@@ -401,7 +416,7 @@ export default function App() {
               </div>
             </section>
 
-            {/* News */}
+            {/* News & Video */}
             <section className="py-16 bg-emerald-950 text-white px-4">
               <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-emerald-900 pb-6">
@@ -465,31 +480,30 @@ export default function App() {
           </div>
         )}
 
-        {/* SERVIZI E GALLERIA CON SFOGLIA ALBUM */}
+        {/* SERVIZI E GALLERIA */}
         {activeTab === 'services' && (
           <div className="py-12 px-4 max-w-7xl mx-auto space-y-16">
             <div>
               <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold text-stone-900">I Nostri Servizi</h2>
-                <p className="text-stone-600 mt-2">Tutto il necessario per il tuo soggiorno ideale</p>
+                <p className="text-stone-600 mt-2">Tutto il necessario per la tua sosta camper e il tuo soggiorno in relax</p>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  { icon: Trees, title: "Piazzole Tende/Camper", desc: "Spazi ampi, ombreggiati e con allaccio elettrico." },
-                  { icon: Wifi, title: "Wi-Fi Gratuito", desc: "Connessione internet disponibile nelle aree comuni." },
-                  { icon: Utensils, title: "Ristoro & Bar", desc: "Prodotti locali tipici cilentani e colazioni vista natura." },
-                  { icon: Car, title: "Parcheggio Interno", desc: "Posto auto/moto custodito e riservato agli ospiti." },
-                ].map((item, idx) => (
-                  <div key={idx} className="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
-                    <item.icon className="w-8 h-8 text-emerald-800 mb-3" />
-                    <h4 className="font-bold text-lg mb-1">{item.title}</h4>
-                    <p className="text-stone-600 text-sm">{item.desc}</p>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {servicesList.map((item, idx) => (
+                  <div key={idx} className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex items-start space-x-4">
+                    <div className="p-3 bg-emerald-50 rounded-xl">
+                      <item.icon className="w-7 h-7 text-emerald-800" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-lg mb-1 text-stone-900">{item.title}</h4>
+                      <p className="text-stone-600 text-sm">{item.desc}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Galleria Fotografica con Ingrandimento ed Album Sfogliabile */}
+            {/* Galleria Fotografica */}
             <div>
               <div className="text-center mb-10">
                 <h2 className="text-3xl font-bold text-stone-900">Galleria Fotografica</h2>
@@ -572,15 +586,14 @@ export default function App() {
                 <div>
                   <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Tipologia Alloggio</label>
                   <select value={accommodationType} onChange={(e) => setAccommodationType(e.target.value)} className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none">
-                    <option>Piazzola Tenda</option>
-                    <option>Piazzola Camper / Caravan</option>
+                    <option>Piazzola Camper</option>
                     <option>Bungalow / Struttura</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">Note o Richieste Speciali</label>
-                  <textarea rows={3} value={clientNotes} onChange={(e) => setClientNotes(e.target.value)} className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none" placeholder="Numero persone, animali domestici, ecc..."></textarea>
+                  <textarea rows={3} value={clientNotes} onChange={(e) => setClientNotes(e.target.value)} className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none" placeholder="Numero persone, animali domestici, allacciamento speciale, ecc..."></textarea>
                 </div>
 
                 <button type="submit" className="w-full bg-emerald-900 text-white font-bold py-3.5 rounded-xl hover:bg-emerald-800 transition">
@@ -889,7 +902,6 @@ export default function App() {
             <X className="w-6 h-6" />
           </button>
 
-          {/* Freccia Indietro */}
           {lightboxAlbum.length > 1 && (
             <button 
               onClick={prevLightboxImage}
@@ -899,7 +911,6 @@ export default function App() {
             </button>
           )}
 
-          {/* Contenitore Immagine Ingrandita */}
           <div className="max-w-5xl max-h-[85vh] flex flex-col items-center">
             <img 
               src={lightboxAlbum[lightboxIndex]?.url} 
@@ -916,7 +927,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Freccia Avanti */}
           {lightboxAlbum.length > 1 && (
             <button 
               onClick={nextLightboxImage}
