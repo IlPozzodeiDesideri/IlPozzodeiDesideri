@@ -22,7 +22,9 @@ import {
   PlusCircle,
   Image as ImageIcon,
   FileText,
-  Trash2
+  Trash2,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 
 export default function App() {
@@ -43,14 +45,21 @@ export default function App() {
 
   // Stato dinamico del CMS Admin (News e Foto)
   const [newsList, setNewsList] = useState([
-    { id: 1, title: 'Apertura Stagione Estiva', date: '2026-06-01', content: 'Vi aspettiamo per una nuova stagione immersi nel verde del Cilento.' }
+    { 
+      id: 1, 
+      title: 'Apertura Stagione Estiva 2026', 
+      date: '1 Giugno 2026', 
+      content: 'Vi aspettiamo per una nuova stagione immersi nel verde del Cilento tra natura e relax.',
+      imageUrl: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80'
+    }
   ]);
   const [newNewsTitle, setNewNewsTitle] = useState('');
   const [newNewsContent, setNewNewsContent] = useState('');
 
   const [galleryPhotos, setGalleryPhotos] = useState([
     { id: 1, title: 'Piazzole tra gli ulivi', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80' },
-    { id: 2, title: 'Tramonto sul mare', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80' }
+    { id: 2, title: 'Tramonto sul Mare di Pisciotta', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80' },
+    { id: 3, title: 'Area Relax & Bar', url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80' }
   ]);
   const [newPhotoTitle, setNewPhotoTitle] = useState('');
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
@@ -77,8 +86,9 @@ export default function App() {
     const newItem = {
       id: Date.now(),
       title: newNewsTitle,
-      date: new Date().toISOString().split('T')[0],
-      content: newNewsContent
+      date: new Date().toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }),
+      content: newNewsContent,
+      imageUrl: 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=800&q=80'
     };
     setNewsList([newItem, ...newsList]);
     setNewNewsTitle('');
@@ -109,7 +119,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-stone-50 text-stone-800 font-sans flex flex-col justify-between">
       {/* Header & Navigation */}
-      <header className="sticky top-0 z-50 bg-emerald-950 text-stone-100 shadow-md">
+      <header className="sticky top-0 z-50 bg-emerald-950/95 backdrop-blur-md text-stone-100 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div 
             onClick={() => setActiveTab('home')} 
@@ -134,7 +144,7 @@ export default function App() {
               onClick={() => setActiveTab('services')}
               className={`hover:text-emerald-300 transition ${activeTab === 'services' ? 'text-emerald-400 font-semibold' : ''}`}
             >
-              Servizi & Gallerìa
+              Servizi & Galleria
             </button>
             <button 
               onClick={() => setActiveTab('booking')}
@@ -173,7 +183,7 @@ export default function App() {
               onClick={() => { setActiveTab('services'); setMobileMenuOpen(false); }}
               className="block w-full text-left py-2 font-medium"
             >
-              Servizi & Gallerìa
+              Servizi & Galleria
             </button>
             <button 
               onClick={() => { setActiveTab('booking'); setMobileMenuOpen(false); }}
@@ -197,49 +207,118 @@ export default function App() {
         {/* HOME VISTA */}
         {activeTab === 'home' && (
           <div>
-            <section className="relative bg-emerald-900 text-white py-24 px-4 text-center overflow-hidden">
-              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#34d399_1px,transparent_1px)] [background-size:16px_16px]"></div>
-              <div className="max-w-4xl mx-auto relative z-10">
-                <span className="bg-emerald-800/80 text-emerald-200 text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full inline-block mb-4">
-                  Cilento • Mare & Natura
+            {/* Hero Section Immersiva con Foto Sfondo */}
+            <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden">
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transform transition duration-1000"
+                style={{ 
+                  backgroundImage: `url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80')` 
+                }}
+              ></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/60 to-emerald-950/40"></div>
+              
+              <div className="max-w-4xl mx-auto relative z-10 space-y-6">
+                <span className="bg-emerald-800/80 backdrop-blur-md text-emerald-200 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full inline-flex items-center space-x-2">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Caprioli di Pisciotta • Cilento</span>
                 </span>
-                <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
-                  La tua oasi di relax a Caprioli di Pisciotta
+                <h1 className="text-4xl sm:text-6xl md:text-7xl font-black leading-tight tracking-tight drop-shadow-lg">
+                  Un'Oasi tra Ulivi Secolari e Mare Cristallino
                 </h1>
-                <p className="text-lg md:text-xl text-stone-200 mb-8 max-w-2xl mx-auto">
-                  Immerso nella macchia mediterranea a due passi dalle spiagge cristalline del Cilento.
+                <p className="text-lg md:text-2xl text-stone-200 max-w-2xl mx-auto font-light leading-relaxed drop-shadow">
+                  Vivi l'autentica esperienza del campeggio nel Parco Nazionale del Cilento.
                 </p>
-                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <div className="pt-4 flex flex-col sm:flex-row justify-center gap-4">
                   <button 
                     onClick={() => setActiveTab('booking')}
-                    className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold px-8 py-3.5 rounded-xl shadow-lg transition duration-200"
+                    className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold px-8 py-4 rounded-xl shadow-2xl transition duration-200 flex items-center justify-center space-x-2"
                   >
-                    Prenota Subito
+                    <span>Prenota la tua Vacanza</span>
+                    <ArrowRight className="w-5 h-5" />
                   </button>
                   <button 
                     onClick={() => setActiveTab('services')}
-                    className="bg-white/10 hover:bg-white/20 text-white font-medium px-8 py-3.5 rounded-xl backdrop-blur-sm transition duration-200"
+                    className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold px-8 py-4 rounded-xl border border-white/30 transition duration-200"
                   >
-                    Scopri i Servizi
+                    Esplora la Struttura
                   </button>
                 </div>
               </div>
             </section>
 
-            {/* News in evidenza nella Home */}
-            <section className="py-16 px-4 max-w-7xl mx-auto">
-              <div className="text-center mb-10">
-                <h2 className="text-2xl font-bold text-stone-900">Ultime News & Avvisi</h2>
-                <p className="text-stone-600 text-sm">Aggiornamenti direttamente dal campeggio</p>
+            {/* Griglia Esperienze / Foto In Evidenza */}
+            <section className="py-20 px-4 max-w-7xl mx-auto">
+              <div className="text-center mb-14">
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900">Vivi Il Pozzo dei Desideri</h2>
+                <p className="text-stone-600 mt-2 text-lg">Natura, relax e il profumo unico della macchia mediterranea</p>
               </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                {newsList.map(item => (
-                  <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
-                    <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full">{item.date}</span>
-                    <h3 className="text-xl font-bold mt-2 mb-2">{item.title}</h3>
-                    <p className="text-stone-600 text-sm">{item.content}</p>
+
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="group relative rounded-3xl overflow-hidden shadow-lg border border-stone-200 h-96">
+                  <img 
+                    src="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80" 
+                    alt="Piazzole Ombreggiate" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/30 to-transparent p-6 flex flex-col justify-end text-white">
+                    <Trees className="w-8 h-8 text-emerald-400 mb-2" />
+                    <h3 className="text-2xl font-bold">Piazzole immerse nel Verde</h3>
+                    <p className="text-stone-300 text-sm mt-1">Ampi spazi ombreggiati per tende e camper sotto gli olivi.</p>
                   </div>
-                ))}
+                </div>
+
+                <div className="group relative rounded-3xl overflow-hidden shadow-lg border border-stone-200 h-96">
+                  <img 
+                    src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" 
+                    alt="Spiaggia e Mare" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/30 to-transparent p-6 flex flex-col justify-end text-white">
+                    <Waves className="w-8 h-8 text-sky-400 mb-2" />
+                    <h3 className="text-2xl font-bold">Spiagge di Caprioli</h3>
+                    <p className="text-stone-300 text-sm mt-1">Mare cristallino raggiungibile a piedi o in pochi minuti.</p>
+                  </div>
+                </div>
+
+                <div className="group relative rounded-3xl overflow-hidden shadow-lg border border-stone-200 h-96">
+                  <img 
+                    src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80" 
+                    alt="Ristoro e Bar" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition duration-500" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/30 to-transparent p-6 flex flex-col justify-end text-white">
+                    <Utensils className="w-8 h-8 text-amber-400 mb-2" />
+                    <h3 className="text-2xl font-bold">Prodotti Tipici & Ristoro</h3>
+                    <p className="text-stone-300 text-sm mt-1">Gusta la colazione e i piatti tradizionali cilentani.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* News & Comunicazioni Visive */}
+            <section className="py-16 bg-emerald-950 text-white px-4">
+              <div className="max-w-7xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-emerald-900 pb-6">
+                  <div>
+                    <span className="text-emerald-400 text-xs font-bold uppercase tracking-widest">Aggiornamenti</span>
+                    <h2 className="text-3xl font-extrabold mt-1">Novità dal Campeggio</h2>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
+                  {newsList.map(item => (
+                    <div key={item.id} className="bg-emerald-900/60 border border-emerald-800 rounded-2xl overflow-hidden flex flex-col md:flex-row">
+                      <img src={item.imageUrl} alt={item.title} className="w-full md:w-48 h-48 object-cover" />
+                      <div className="p-6 flex flex-col justify-between">
+                        <div>
+                          <span className="text-xs font-semibold text-emerald-300">{item.date}</span>
+                          <h3 className="text-xl font-bold mt-1 text-white">{item.title}</h3>
+                          <p className="text-stone-300 text-sm mt-2">{item.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
           </div>
@@ -277,8 +356,8 @@ export default function App() {
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {galleryPhotos.map(photo => (
-                  <div key={photo.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200">
-                    <img src={photo.url} alt={photo.title} className="w-48 h-56 object-cover w-full" />
+                  <div key={photo.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 group">
+                    <img src={photo.url} alt={photo.title} className="w-full h-64 object-cover group-hover:scale-105 transition duration-300" />
                     <div className="p-4">
                       <h4 className="font-bold text-stone-800">{photo.title}</h4>
                     </div>
@@ -344,7 +423,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ADMIN VISTA (LOGIN + CMS COMPLETO) */}
+        {/* ADMIN VISTA */}
         {activeTab === 'admin' && (
           <div>
             {!isAdminAuthenticated ? (
@@ -406,7 +485,7 @@ export default function App() {
                 </div>
               </div>
             ) : (
-              /* DASHBOARD CMS ADMIN (GESTIONE NEWS & FOTO) */
+              /* DASHBOARD CMS ADMIN */
               <div className="py-10 px-4 max-w-7xl mx-auto space-y-10">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-6 rounded-2xl shadow-sm border border-stone-200 gap-4">
                   <div>
@@ -415,7 +494,7 @@ export default function App() {
                       <span>Accesso Autorizzato</span>
                     </span>
                     <h1 className="text-2xl font-bold text-stone-900">CMS - Gestione Contenuti</h1>
-                    <p className="text-xs text-stone-500">Benvenuto, <strong>{adminUser}</strong>. Da qui puoi pubblicare news e aggiungere foto.</p>
+                    <p className="text-xs text-stone-500">Utente: <strong>{adminUser}</strong></p>
                   </div>
                   
                   <button
@@ -428,11 +507,11 @@ export default function App() {
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
-                  {/* Sezione Gestione News */}
+                  {/* Gestione News */}
                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
                     <div className="flex items-center space-x-2 border-b pb-4">
                       <FileText className="w-6 h-6 text-emerald-800" />
-                      <h3 className="text-xl font-bold">Gestione News & Avvisi</h3>
+                      <h3 className="text-xl font-bold">Gestione News</h3>
                     </div>
 
                     <form onSubmit={handleAddNews} className="space-y-4">
@@ -443,8 +522,7 @@ export default function App() {
                           required
                           value={newNewsTitle}
                           onChange={(e) => setNewNewsTitle(e.target.value)}
-                          className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none text-sm"
-                          placeholder="Es. Evento Sagra del Cilento"
+                          className="w-full p-3 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800"
                         />
                       </div>
                       <div>
@@ -454,8 +532,7 @@ export default function App() {
                           rows={3}
                           value={newNewsContent}
                           onChange={(e) => setNewNewsContent(e.target.value)}
-                          className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none text-sm"
-                          placeholder="Scrivi i dettagli dell'avviso..."
+                          className="w-full p-3 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800"
                         />
                       </div>
                       <button
@@ -468,17 +545,13 @@ export default function App() {
                     </form>
 
                     <div className="space-y-3 pt-4 border-t">
-                      <h4 className="font-semibold text-sm text-stone-700">News Attive ({newsList.length})</h4>
                       {newsList.map(item => (
                         <div key={item.id} className="flex justify-between items-center p-3 bg-stone-50 rounded-xl border border-stone-200">
                           <div>
                             <p className="font-bold text-sm text-stone-800">{item.title}</p>
                             <span className="text-xs text-stone-500">{item.date}</span>
                           </div>
-                          <button
-                            onClick={() => handleDeleteNews(item.id)}
-                            className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition"
-                          >
+                          <button onClick={() => handleDeleteNews(item.id)} className="text-red-500 hover:text-red-700 p-1.5">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -486,11 +559,11 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Sezione Gestione Galleria Foto */}
+                  {/* Gestione Foto */}
                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 space-y-6">
                     <div className="flex items-center space-x-2 border-b pb-4">
                       <ImageIcon className="w-6 h-6 text-emerald-800" />
-                      <h3 className="text-xl font-bold">Gestione Galleria Foto</h3>
+                      <h3 className="text-xl font-bold">Gestione Galleria</h3>
                     </div>
 
                     <form onSubmit={handleAddPhoto} className="space-y-4">
@@ -501,19 +574,17 @@ export default function App() {
                           required
                           value={newPhotoTitle}
                           onChange={(e) => setNewPhotoTitle(e.target.value)}
-                          className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none text-sm"
-                          placeholder="Es. Nuova Piscina / Piazzola"
+                          className="w-full p-3 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">URL Immagine (Link Web)</label>
+                        <label className="block text-xs font-semibold uppercase text-stone-600 mb-1">URL Immagine</label>
                         <input
                           type="url"
                           required
                           value={newPhotoUrl}
                           onChange={(e) => setNewPhotoUrl(e.target.value)}
-                          className="w-full p-3 border rounded-lg border-stone-300 focus:ring-2 focus:ring-emerald-800 outline-none text-sm"
-                          placeholder="https://images.unsplash.com/..."
+                          className="w-full p-3 border rounded-lg border-stone-300 text-sm outline-none focus:ring-2 focus:ring-emerald-800"
                         />
                       </div>
                       <button
@@ -521,22 +592,18 @@ export default function App() {
                         className="w-full bg-emerald-900 text-white font-semibold py-2.5 rounded-xl hover:bg-emerald-800 transition flex items-center justify-center space-x-2"
                       >
                         <PlusCircle className="w-4 h-4" />
-                        <span>Aggiungi alla Galleria</span>
+                        <span>Aggiungi Foto</span>
                       </button>
                     </form>
 
                     <div className="space-y-3 pt-4 border-t">
-                      <h4 className="font-semibold text-sm text-stone-700">Foto Caricate ({galleryPhotos.length})</h4>
                       {galleryPhotos.map(photo => (
                         <div key={photo.id} className="flex justify-between items-center p-3 bg-stone-50 rounded-xl border border-stone-200">
                           <div className="flex items-center space-x-3">
                             <img src={photo.url} alt={photo.title} className="w-12 h-12 object-cover rounded-lg" />
                             <p className="font-bold text-sm text-stone-800">{photo.title}</p>
                           </div>
-                          <button
-                            onClick={() => handleDeletePhoto(photo.id)}
-                            className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition"
-                          >
+                          <button onClick={() => handleDeletePhoto(photo.id)} className="text-red-500 hover:text-red-700 p-1.5">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
