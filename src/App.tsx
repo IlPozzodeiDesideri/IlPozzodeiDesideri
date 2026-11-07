@@ -34,7 +34,8 @@ import {
   RefreshCw,
   Settings,
   Navigation,
-  Waves
+  Waves,
+  Save
 } from 'lucide-react';
 
 // =========================================================================
@@ -107,14 +108,13 @@ export default function App() {
     { icon: Wifi, title: "Wi-Fi Gratuito", desc: "Connessione internet senza fili a disposizione degli ospiti." }
   ];
 
-  // Caricamento Dati e Foto dal Database Cloud Supabase
+  // Caricamento Dati all'avvio
   useEffect(() => {
     fetchCloudData();
   }, []);
 
   const fetchCloudData = async () => {
     try {
-      // 1. Impostazioni
       const { data: settingsData } = await supabase.from('site_settings').select('*').eq('id', 1).single();
       if (settingsData) {
         const formattedSettings = {
@@ -135,7 +135,6 @@ export default function App() {
         setSettingsForm(formattedSettings);
       }
 
-      // 2. Prenotazioni
       const { data: bookingsData } = await supabase.from('bookings').select('*').order('id', { ascending: false });
       if (bookingsData) {
         setBookingsList(bookingsData.map(b => ({
@@ -151,7 +150,6 @@ export default function App() {
         })));
       }
 
-      // 3. News
       const { data: newsData } = await supabase.from('news').select('*').order('id', { ascending: false });
       if (newsData && newsData.length > 0) {
         setNewsList(newsData.map(n => ({
@@ -173,7 +171,6 @@ export default function App() {
         ]);
       }
 
-      // 4. Foto Cloud dalla tabella site_photos
       const { data: photosData } = await supabase.from('site_photos').select('*');
       if (photosData && photosData.length > 0) {
         const heroes = photosData.filter(p => p.section === 'hero');
@@ -185,14 +182,13 @@ export default function App() {
         if (serv.length > 0) setServicesGallery(serv);
       }
     } catch (error) {
-      console.log('Errore di sincronizzazione cloud:', error);
+      console.log('Errore sincronizzazione cloud:', error);
     }
   };
 
+  // 1. Salvataggio Diretto Impostazioni
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSiteSettings({ ...settingsForm });
-
     const { error } = await supabase.from('site_settings').upsert({
       id: 1,
       site_name: settingsForm.siteName,
@@ -210,9 +206,10 @@ export default function App() {
     });
 
     if (!error) {
-      alert('Dati aggiornati con successo per tutti i visitatori!');
+      setSiteSettings({ ...settingsForm });
+      alert('✅ Dati Società salvati con successo su Supabase!');
     } else {
-      alert('Errore nel salvataggio. Riprova tra poco.');
+      alert('❌ Errore nel salvataggio dei dati.');
     }
   };
 
@@ -272,7 +269,7 @@ export default function App() {
   const nextLightboxImage = () => setLightboxIndex((prev) => (prev + 1) % lightboxAlbum.length);
   const prevLightboxImage = () => setLightboxIndex((prev) => (prev - 1 + lightboxAlbum.length) % lightboxAlbum.length);
 
-  // News Gestione
+  // 2. Salvataggio Diretto News
   const [newNewsTitle, setNewNewsTitle] = useState('');
   const [newNewsContent, setNewNewsContent] = useState('');
 
@@ -286,10 +283,15 @@ export default function App() {
       content: newNewsContent,
       image_url: 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=800&q=80'
     };
-    await supabase.from('news').insert([newItem]);
-    fetchCloudData();
-    setNewNewsTitle('');
-    setNewNewsContent('');
+    const { error } = await supabase.from('news').insert([newItem]);
+    if (!error) {
+      fetchCloudData();
+      setNewNewsTitle('');
+      setNewNewsContent('');
+      alert('✅ News pubblicata e salvata su Supabase!');
+    } else {
+      alert('❌ Errore durante la pubblicazione.');
+    }
   };
 
   const handleDeleteBooking = async (id: number) => {
@@ -297,7 +299,7 @@ export default function App() {
     fetchCloudData();
   };
 
-  // Caricamento Foto su Supabase Storage
+  // 3. Salvataggio Diretto Foto su Supabase Storage
   const [photoTargetSection, setPhotoTargetSection] = useState<'hero' | 'homeGrid' | 'servicesGallery'>('hero');
   const [adminPhotoTitle, setAdminPhotoTitle] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
@@ -340,42 +342,36 @@ export default function App() {
         const fileName = `${Date.now()}_${i}.${fileExt}`;
         const filePath = `${fileName}`;
 
-        // Caricamento nel Bucket Storage 'photos'
         const { error: uploadError } = await supabase.storage
           .from('photos')
           .upload(filePath, file);
 
         if (uploadError) {
           console.error('Errore storage:', uploadError);
-          alert(`Errore caricamento file ${file.name}`);
           continue;
         }
 
-        // Recupero URL Pubblico
         const { data: publicUrlData } = supabase.storage
           .from('photos')
           .getPublicUrl(filePath);
 
-        const publicUrl = publicUrlData.publicUrl;
-
-        // Salvataggio record nella tabella database site_photos
         const photoRecord = {
           id: Date.now() + i,
           title: adminPhotoTitle ? `${adminPhotoTitle} (${i + 1})` : file.name,
-          url: publicUrl,
+          url: publicUrlData.publicUrl,
           section: photoTargetSection
         };
 
         await supabase.from('site_photos').insert([photoRecord]);
       }
 
-      alert('Foto caricate con successo su Supabase Storage e salvate per tutti i visitatori!');
+      alert('✅ Foto caricate e salvate permanentemente su Supabase!');
       setAdminPhotoTitle('');
       setSelectedFiles(null);
       fetchCloudData();
     } catch (err) {
       console.error(err);
-      alert("Errore imprevisto durante l'upload.");
+      alert("❌ Errore imprevisto durante l'upload.");
     } finally {
       setIsUploading(false);
     }
@@ -756,7 +752,7 @@ export default function App() {
                 <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border">
                   <div>
                     <h1 className="text-2xl font-bold text-stone-900">CMS - Pannello Admin</h1>
-                    <p className="text-xs text-stone-500">Gestisci i dati della società, le foto e le prenotazioni in tempo reale.</p>
+                    <p className="text-xs text-stone-500">Gestisci i dati della società, le foto e le prenotazioni con salvataggio diretto.</p>
                   </div>
                   <button onClick={handleAdminLogout} className="flex items-center space-x-2 bg-stone-100 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-red-50 hover:text-red-600 transition">
                     <LogOut className="w-4 h-4" />
@@ -764,11 +760,11 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* MODULO DATI SOCIETÀ */}
+                {/* 1. SEZIONE DATI SOCIETÀ */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <Settings className="w-6 h-6 text-emerald-800" />
-                    <span>Dati Società & Home Page (Cloud)</span>
+                    <span>1. Dati Società & Home Page</span>
                   </h3>
 
                   <form onSubmit={handleSaveSettings} className="space-y-4">
@@ -798,17 +794,18 @@ export default function App() {
                       </div>
                     </div>
 
-                    <button type="submit" className="bg-emerald-900 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-emerald-800 transition">
-                      Salva per Tutti i Visitatori
+                    <button type="submit" className="bg-emerald-900 text-white font-bold py-3 px-6 rounded-xl hover:bg-emerald-800 transition flex items-center space-x-2">
+                      <Save className="w-4 h-4" />
+                      <span>Salva Dati Società in Supabase</span>
                     </button>
                   </form>
                 </div>
 
-                {/* MODULO CARICAMENTO FOTO SU SUPABASE STORAGE */}
+                {/* 2. SEZIONE CARICAMENTO FOTO */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <ImageIcon className="w-6 h-6 text-emerald-800" />
-                    <span>Carica Foto nel Cloud Supabase Storage (Max 5 per volta)</span>
+                    <span>2. Gestione & Caricamento Foto (Cloud Storage)</span>
                   </h3>
 
                   {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
@@ -817,15 +814,15 @@ export default function App() {
                     <div>
                       <label className="block text-xs font-semibold uppercase mb-1">Sezione Destinazione</label>
                       <select value={photoTargetSection} onChange={(e: any) => setPhotoTargetSection(e.target.value)} className="w-full p-2.5 border rounded-lg text-sm bg-white">
-                        <option value="hero">1. Home Hero (Sfondo Principale)</option>
-                        <option value="homeGrid">2. Home Grid (Griglia in evidenza)</option>
+                        <option value="hero">1. Home Hero (Sfondo)</option>
+                        <option value="homeGrid">2. Home Grid (Griglia)</option>
                         <option value="servicesGallery">3. Servizi & Galleria</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold uppercase mb-1">Titolo Foto</label>
-                      <input type="text" value={adminPhotoTitle} onChange={(e) => setAdminPhotoTitle(e.target.value)} className="w-full p-2.5 border rounded-lg text-sm bg-white" placeholder="Es. Piazzola vista mare" />
+                      <input type="text" value={adminPhotoTitle} onChange={(e) => setAdminPhotoTitle(e.target.value)} className="w-full p-2.5 border rounded-lg text-sm bg-white" placeholder="Es. Vista Mare" />
                     </div>
 
                     <div>
@@ -835,13 +832,13 @@ export default function App() {
 
                     <button type="submit" disabled={isUploading} className="bg-emerald-900 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-emerald-800 transition flex items-center justify-center space-x-2 disabled:opacity-50">
                       <Upload className="w-4 h-4" />
-                      <span>{isUploading ? 'Caricamento...' : 'Carica nel Cloud'}</span>
+                      <span>{isUploading ? 'Salvataggio...' : 'Salva Foto in Supabase'}</span>
                     </button>
                   </form>
 
-                  {/* Lista foto attualmente caricate con opzione di eliminazione */}
+                  {/* Lista foto attive con eliminazione diretta */}
                   <div className="pt-4 border-t">
-                    <h4 className="font-bold text-sm mb-3">Foto Gestite nel Database Cloud:</h4>
+                    <h4 className="font-bold text-sm mb-3">Foto Attualmente nel Cloud:</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[...heroImages, ...homeGridPhotos, ...servicesGallery].map((photo) => (
                         <div key={photo.id} className="relative bg-stone-100 p-2 rounded-xl border flex flex-col justify-between">
@@ -857,11 +854,11 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* MODULO PRENOTAZIONI */}
+                {/* 3. SEZIONE PRENOTAZIONI */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <Calendar className="w-6 h-6 text-emerald-800" />
-                    <span>Gestione Prenotazioni ({bookingsList.length})</span>
+                    <span>3. Gestione Prenotazioni ({bookingsList.length})</span>
                   </h3>
 
                   <div className="grid lg:grid-cols-2 gap-6">
@@ -921,18 +918,19 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* MODULO NEWS */}
+                {/* 4. SEZIONE NEWS */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-6">
                   <h3 className="text-xl font-bold flex items-center space-x-2 border-b pb-3">
                     <FileText className="w-6 h-6 text-emerald-800" />
-                    <span>Pubblica News / Video</span>
+                    <span>4. Pubblica News / Video</span>
                   </h3>
 
                   <form onSubmit={handleAddNews} className="space-y-4">
                     <input type="text" required value={newNewsTitle} onChange={(e) => setNewNewsTitle(e.target.value)} className="w-full p-3 border rounded-lg text-sm" placeholder="Titolo della news" />
-                    <textarea required rows={3} value={newNewsContent} onChange={(e) => setNewNewsContent(e.target.value)} className="w-full p-3 border rounded-lg text-sm" placeholder="Testo news o link video (YouTube/Vimeo)..." />
-                    <button type="submit" className="bg-emerald-900 text-white font-semibold py-2.5 px-6 rounded-xl hover:bg-emerald-800 transition">
-                      Pubblica News
+                    <textarea required rows={3} value={newNewsContent} onChange={(e) => setNewNewsContent(e.target.value)} className="w-full p-3 border rounded-lg text-sm" placeholder="Testo news o link video (YouTube)..." />
+                    <button type="submit" className="bg-emerald-900 text-white font-semibold py-3 px-6 rounded-xl hover:bg-emerald-800 transition flex items-center space-x-2">
+                      <Save className="w-4 h-4" />
+                      <span>Salva News in Supabase</span>
                     </button>
                   </form>
                 </div>
