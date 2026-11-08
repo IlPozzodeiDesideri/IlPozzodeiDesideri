@@ -34,7 +34,6 @@ import {
   RefreshCw,
   Settings,
   Navigation,
-  Waves,
   Save
 } from 'lucide-react';
 
@@ -49,6 +48,13 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'services' | 'booking' | 'admin'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Navigazione dinamica tra le tab con scroll automatico in alto
+  const navigateTo = (tab: 'home' | 'services' | 'booking' | 'admin') => {
+    setActiveTab(tab);
+    setMobileMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Dati Società e Impostazioni Struttura
   const [siteSettings, setSiteSettings] = useState({
@@ -382,7 +388,7 @@ export default function App() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-emerald-950/95 backdrop-blur-md text-stone-100 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div onClick={() => setActiveTab('home')} className="cursor-pointer flex items-center space-x-2">
+          <div onClick={() => navigateTo('home')} className="cursor-pointer flex items-center space-x-2">
             <Trees className="w-8 h-8 text-emerald-400" />
             <div>
               <span className="text-xl font-bold tracking-wide block leading-none">{siteSettings.siteName}</span>
@@ -391,10 +397,10 @@ export default function App() {
           </div>
 
           <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-            <button onClick={() => setActiveTab('home')} className={`hover:text-emerald-300 transition ${activeTab === 'home' ? 'text-emerald-400 font-semibold' : ''}`}>Home</button>
-            <button onClick={() => setActiveTab('services')} className={`hover:text-emerald-300 transition ${activeTab === 'services' ? 'text-emerald-400 font-semibold' : ''}`}>Servizi & Galleria</button>
-            <button onClick={() => setActiveTab('booking')} className={`hover:text-emerald-300 transition ${activeTab === 'booking' ? 'text-emerald-400 font-semibold' : ''}`}>Prenotazioni</button>
-            <button onClick={() => setActiveTab('admin')} className={`flex items-center space-x-1 border border-emerald-700 px-3 py-1.5 rounded-full hover:bg-emerald-900 transition ${activeTab === 'admin' ? 'bg-emerald-900 border-emerald-400 text-emerald-300' : ''}`}>
+            <button onClick={() => navigateTo('home')} className={`hover:text-emerald-300 transition ${activeTab === 'home' ? 'text-emerald-400 font-semibold' : ''}`}>Home</button>
+            <button onClick={() => navigateTo('services')} className={`hover:text-emerald-300 transition ${activeTab === 'services' ? 'text-emerald-400 font-semibold' : ''}`}>Servizi & Galleria</button>
+            <button onClick={() => navigateTo('booking')} className={`hover:text-emerald-300 transition ${activeTab === 'booking' ? 'text-emerald-400 font-semibold' : ''}`}>Prenotazioni</button>
+            <button onClick={() => navigateTo('admin')} className={`flex items-center space-x-1 border border-emerald-700 px-3 py-1.5 rounded-full hover:bg-emerald-900 transition ${activeTab === 'admin' ? 'bg-emerald-900 border-emerald-400 text-emerald-300' : ''}`}>
               <Lock className="w-3.5 h-3.5" />
               <span>Area Admin</span>
             </button>
@@ -407,10 +413,10 @@ export default function App() {
 
         {mobileMenuOpen && (
           <div className="md:hidden bg-emerald-900 px-4 pt-2 pb-6 space-y-3 border-t border-emerald-800">
-            <button onClick={() => { setActiveTab('home'); setMobileMenuOpen(false); }} className="block w-full text-left py-2 font-medium">Home</button>
-            <button onClick={() => { setActiveTab('services'); setMobileMenuOpen(false); }} className="block w-full text-left py-2 font-medium">Servizi & Galleria</button>
-            <button onClick={() => { setActiveTab('booking'); setMobileMenuOpen(false); }} className="block w-full text-left py-2 font-medium">Prenotazioni</button>
-            <button onClick={() => { setActiveTab('admin'); setMobileMenuOpen(false); }} className="block w-full text-left py-2 font-medium text-emerald-300 flex items-center space-x-2">
+            <button onClick={() => navigateTo('home')} className="block w-full text-left py-2 font-medium">Home</button>
+            <button onClick={() => navigateTo('services')} className="block w-full text-left py-2 font-medium">Servizi & Galleria</button>
+            <button onClick={() => navigateTo('booking')} className="block w-full text-left py-2 font-medium">Prenotazioni</button>
+            <button onClick={() => navigateTo('admin')} className="block w-full text-left py-2 font-medium text-emerald-300 flex items-center space-x-2">
               <Lock className="w-4 h-4" />
               <span>Area Admin</span>
             </button>
@@ -422,35 +428,38 @@ export default function App() {
       <main className="flex-grow">
         {activeTab === 'home' && (
           <div>
-            <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden bg-emerald-950">
+            <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden bg-stone-900">
               {heroImages.length > 0 && (
                 <div 
                   className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
                   style={{ backgroundImage: `url('${heroImages[0]?.url}')` }}
                 ></div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/60 to-emerald-950/40"></div>
+              
+              {/* Overlay neutro trasparente per far risaltare la foto */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
 
               <div className="max-w-4xl mx-auto relative z-10 space-y-6">
-                <span className="bg-emerald-800/80 text-emerald-200 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full inline-flex items-center space-x-2">
+                <span className="bg-emerald-800/80 text-emerald-200 text-xs font-semibold uppercase tracking-widest px-4 py-1.5 rounded-full inline-flex items-center space-x-2 backdrop-blur-sm">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>{siteSettings.subTitle}</span>
                 </span>
 
-                <h1 className="text-5xl sm:text-7xl md:text-8xl font-black text-amber-400">
+                <h1 className="text-5xl sm:text-7xl md:text-8xl font-black text-amber-400 drop-shadow-md">
                   {siteSettings.heroTitle}
                 </h1>
 
-                <p className="text-xl sm:text-3xl font-light text-stone-100">
+                <p className="text-xl sm:text-3xl font-light text-stone-100 drop-shadow-sm">
                   {siteSettings.heroTagline}
                 </p>
 
+                {/* Pulsanti Dinamici */}
                 <div className="pt-4 flex flex-col sm:flex-row justify-center gap-4">
-                  <button onClick={() => setActiveTab('booking')} className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold px-8 py-4 rounded-xl shadow-2xl flex items-center justify-center space-x-2">
+                  <button onClick={() => navigateTo('booking')} className="bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold px-8 py-4 rounded-xl shadow-2xl flex items-center justify-center space-x-2 transition transform active:scale-95">
                     <span>Prenota la tua Vacanza</span>
                     <ArrowRight className="w-5 h-5" />
                   </button>
-                  <button onClick={() => setActiveTab('services')} className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold px-8 py-4 rounded-xl border border-white/30 transition">
+                  <button onClick={() => navigateTo('services')} className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-semibold px-8 py-4 rounded-xl border border-white/30 transition transform active:scale-95">
                     Esplora i Servizi
                   </button>
                 </div>
