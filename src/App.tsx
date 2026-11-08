@@ -83,10 +83,10 @@ export default function App() {
   const [newsList, setNewsList] = useState<any[]>([]);
   const [bookingsList, setBookingsList] = useState<any[]>([]);
 
-  // Foto per le Sezioni (Partono vuote per evitare sfarfallii e mostrare solo il database)
-  const [heroImages, setHeroImages] = useState<any[]>([
-    { id: 1, title: 'Caricamento in corso...', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80', section: 'hero' }
-  ]);
+  // Foto per le Sezioni (Tutte completamente vuote all'avvio)
+  const [heroImages, setHeroImages] = useState<any[]>([]);
+  const [homeGridPhotos, setHomeGridPhotos] = useState<any[]>([]);
+  const [servicesGallery, setServicesGallery] = useState<any[]>([]);
 
   const [homeGridPhotos, setHomeGridPhotos] = useState<any[]>([]);
   const [servicesGallery, setServicesGallery] = useState<any[]>([]);
