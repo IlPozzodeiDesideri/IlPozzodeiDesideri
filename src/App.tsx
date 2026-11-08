@@ -83,11 +83,8 @@ export default function App() {
   const [newsList, setNewsList] = useState<any[]>([]);
   const [bookingsList, setBookingsList] = useState<any[]>([]);
 
-  // Foto per le Sezioni (Tutte completamente vuote all'avvio)
+  // Foto per le Sezioni (Inizializzate vuote, gestite esclusivamente da Supabase)
   const [heroImages, setHeroImages] = useState<any[]>([]);
-  const [homeGridPhotos, setHomeGridPhotos] = useState<any[]>([]);
-  const [servicesGallery, setServicesGallery] = useState<any[]>([]);
-
   const [homeGridPhotos, setHomeGridPhotos] = useState<any[]>([]);
   const [servicesGallery, setServicesGallery] = useState<any[]>([]);
 
@@ -157,16 +154,16 @@ export default function App() {
         })));
       }
 
-      // 4. Carica Foto in modo pulito e sicuro
+      // 4. Carica Foto
       const { data: photosData, error: photosError } = await supabase.from('site_photos').select('*');
       if (!photosError && photosData) {
         const heroes = photosData.filter((p: any) => p.section === 'hero');
         const grid = photosData.filter((p: any) => p.section === 'homeGrid');
         const serv = photosData.filter((p: any) => p.section === 'servicesGallery');
 
-        if (heroes.length > 0) setHeroImages(heroes);
-        if (grid.length > 0) setHomeGridPhotos(grid);
-        if (serv.length > 0) setServicesGallery(serv);
+        setHeroImages(heroes);
+        setHomeGridPhotos(grid);
+        setServicesGallery(serv);
       }
     } catch (error) {
       console.error('Errore durante la lettura da Supabase:', error);
@@ -425,11 +422,13 @@ export default function App() {
       <main className="flex-grow">
         {activeTab === 'home' && (
           <div>
-            <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden">
-              <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
-                style={{ backgroundImage: `url('${heroImages[0]?.url}')` }}
-              ></div>
+            <section className="relative min-h-[85vh] flex items-center justify-center text-white text-center px-4 overflow-hidden bg-emerald-950">
+              {heroImages.length > 0 && (
+                <div 
+                  className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
+                  style={{ backgroundImage: `url('${heroImages[0]?.url}')` }}
+                ></div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/60 to-emerald-950/40"></div>
 
               <div className="max-w-4xl mx-auto relative z-10 space-y-6">
@@ -472,11 +471,13 @@ export default function App() {
             <section className="py-20 px-4 max-w-7xl mx-auto">
               <div className="text-center mb-14">
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900">Vivi {siteSettings.siteName}</h2>
-                <p className="text-stone-600 mt-2 text-lg">Natura, relax e il profumo unico della macchia mediterranea (clicca su ogni foto per ingrandirla)</p>
+                <p className="text-stone-600 mt-2 text-lg">Natura, relax e il profumo unico della macchia mediterranea</p>
               </div>
 
               {homeGridPhotos.length === 0 ? (
-                <p className="text-center text-stone-400 py-8">Nessuna foto nella griglia home. Aggiungine una dall'Area Admin.</p>
+                <div className="text-center py-12 bg-stone-100 rounded-3xl border border-dashed border-stone-300">
+                  <p className="text-stone-500 text-sm">Nessuna foto nella griglia home. Aggiungine una dall'Area Admin.</p>
+                </div>
               ) : (
                 <div className="grid md:grid-cols-3 gap-8">
                   {homeGridPhotos.map((photo, idx) => (
@@ -613,7 +614,9 @@ export default function App() {
               </div>
 
               {servicesGallery.length === 0 ? (
-                <p className="text-center text-stone-400 py-8">Nessuna foto nella galleria. Aggiungine una dall'Area Admin.</p>
+                <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-stone-300">
+                  <p className="text-stone-500 text-sm">Nessuna foto nella galleria. Aggiungine una dall'Area Admin.</p>
+                </div>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {servicesGallery.map((photo, index) => (
@@ -814,18 +817,22 @@ export default function App() {
                   {/* Elenco Foto salvate su Supabase */}
                   <div className="pt-4 border-t">
                     <h4 className="font-bold text-sm mb-3">Foto Gestite nel Cloud:</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {[...heroImages, ...homeGridPhotos, ...servicesGallery].map((photo) => (
-                        <div key={photo.id} className="relative bg-stone-100 p-2 rounded-xl border flex flex-col justify-between">
-                          <img src={photo.url} alt={photo.title} className="w-full h-28 object-cover rounded-lg mb-2" />
-                          <p className="text-xs font-semibold truncate">{photo.title}</p>
-                          <span className="text-[10px] text-emerald-700 uppercase font-bold">{photo.section}</span>
-                          <button onClick={() => handleDeletePhoto(photo.id)} className="absolute top-3 right-3 bg-red-600 text-white p-1.5 rounded-full shadow hover:bg-red-700 transition">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                    {[...heroImages, ...homeGridPhotos, ...servicesGallery].length === 0 ? (
+                      <p className="text-xs text-stone-400 py-4">Nessuna foto presente nel database.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[...heroImages, ...homeGridPhotos, ...servicesGallery].map((photo) => (
+                          <div key={photo.id} className="relative bg-stone-100 p-2 rounded-xl border flex flex-col justify-between">
+                            <img src={photo.url} alt={photo.title} className="w-full h-28 object-cover rounded-lg mb-2" />
+                            <p className="text-xs font-semibold truncate">{photo.title}</p>
+                            <span className="text-[10px] text-emerald-700 uppercase font-bold">{photo.section}</span>
+                            <button onClick={() => handleDeletePhoto(photo.id)} className="absolute top-3 right-3 bg-red-600 text-white p-1.5 rounded-full shadow hover:bg-red-700 transition">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
