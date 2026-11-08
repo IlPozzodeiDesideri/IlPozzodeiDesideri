@@ -83,21 +83,13 @@ export default function App() {
   const [newsList, setNewsList] = useState<any[]>([]);
   const [bookingsList, setBookingsList] = useState<any[]>([]);
 
-  // Foto per le Sezioni (Stato iniziale di fallback)
+  // Foto per le Sezioni (Partono vuote per evitare sfarfallii e mostrare solo il database)
   const [heroImages, setHeroImages] = useState<any[]>([
-    { id: 1, title: 'Tramonto Cilento (Principale)', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80', section: 'hero' }
+    { id: 1, title: 'Caricamento in corso...', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80', section: 'hero' }
   ]);
 
-  const [homeGridPhotos, setHomeGridPhotos] = useState<any[]>([
-    { id: 1, title: 'Piazzole Camper tra gli Ulivi', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80', section: 'homeGrid' },
-    { id: 2, title: 'Spiagge di Caprioli', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80', section: 'homeGrid' },
-    { id: 3, title: 'Bar & Prodotti Tipici', url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80', section: 'homeGrid' }
-  ]);
-
-  const [servicesGallery, setServicesGallery] = useState<any[]>([
-    { id: 1, title: 'Panoramica Campeggio', url: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=800&q=80', section: 'servicesGallery' },
-    { id: 2, title: 'Costa Cilentana', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80', section: 'servicesGallery' }
-  ]);
+  const [homeGridPhotos, setHomeGridPhotos] = useState<any[]>([]);
+  const [servicesGallery, setServicesGallery] = useState<any[]>([]);
 
   const servicesList = [
     { icon: Car, title: "Piazzole Camper", desc: "Spazi ampi dedicati alla sosta camper." },
@@ -165,9 +157,9 @@ export default function App() {
         })));
       }
 
-      // 4. Carica Foto
-      const { data: photosData } = await supabase.from('site_photos').select('*');
-      if (photosData && photosData.length > 0) {
+      // 4. Carica Foto in modo pulito e sicuro
+      const { data: photosData, error: photosError } = await supabase.from('site_photos').select('*');
+      if (!photosError && photosData) {
         const heroes = photosData.filter((p: any) => p.section === 'hero');
         const grid = photosData.filter((p: any) => p.section === 'homeGrid');
         const serv = photosData.filter((p: any) => p.section === 'servicesGallery');
@@ -300,7 +292,7 @@ export default function App() {
     fetchCloudData();
   };
 
-  // Gestione Foto (Upload Base64 con Gestione Errore Supabase)
+  // Gestione Foto (Upload Base64)
   const [photoTargetSection, setPhotoTargetSection] = useState<'hero' | 'homeGrid' | 'servicesGallery'>('hero');
   const [adminPhotoTitle, setAdminPhotoTitle] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
@@ -342,7 +334,6 @@ export default function App() {
             section: photoTargetSection
           };
 
-          // Salva su Database Supabase con log e avviso errori
           const { error } = await supabase.from('site_photos').insert([photoObj]);
           if (!error) {
             fetchCloudData();
@@ -484,28 +475,29 @@ export default function App() {
                 <p className="text-stone-600 mt-2 text-lg">Natura, relax e il profumo unico della macchia mediterranea (clicca su ogni foto per ingrandirla)</p>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-8">
-                {homeGridPhotos.map((photo, idx) => (
-                  <div 
-                    key={photo.id || idx} 
-                    onClick={() => openLightbox(homeGridPhotos, idx)}
-                    className="group relative rounded-3xl overflow-hidden shadow-lg border border-stone-200 h-96 cursor-pointer"
-                  >
-                    <img src={photo.url} alt={photo.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/30 to-transparent p-6 flex flex-col justify-end text-white">
-                      <div className="flex justify-between items-end">
-                        <div>
-                          {idx === 0 && <Car className="w-8 h-8 text-emerald-400 mb-2" />}
-                          {idx === 1 && <Waves className="w-8 h-8 text-sky-400 mb-2" />}
-                          {idx >= 2 && <Utensils className="w-8 h-8 text-amber-400 mb-2" />}
-                          <h3 className="text-2xl font-bold">{photo.title}</h3>
+              {homeGridPhotos.length === 0 ? (
+                <p className="text-center text-stone-400 py-8">Nessuna foto nella griglia home. Aggiungine una dall'Area Admin.</p>
+              ) : (
+                <div className="grid md:grid-cols-3 gap-8">
+                  {homeGridPhotos.map((photo, idx) => (
+                    <div 
+                      key={photo.id || idx} 
+                      onClick={() => openLightbox(homeGridPhotos, idx)}
+                      className="group relative rounded-3xl overflow-hidden shadow-lg border border-stone-200 h-96 cursor-pointer"
+                    >
+                      <img src={photo.url} alt={photo.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/30 to-transparent p-6 flex flex-col justify-end text-white">
+                        <div className="flex justify-between items-end">
+                          <div>
+                            <h3 className="text-2xl font-bold">{photo.title}</h3>
+                          </div>
+                          <Maximize2 className="w-5 h-5 text-stone-300 opacity-0 group-hover:opacity-100 transition" />
                         </div>
-                        <Maximize2 className="w-5 h-5 text-stone-300 opacity-0 group-hover:opacity-100 transition" />
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className="py-16 bg-stone-100 border-t border-stone-200 px-4">
@@ -619,28 +611,33 @@ export default function App() {
                 <h2 className="text-3xl font-bold text-stone-900">Galleria Fotografica</h2>
                 <p className="text-stone-600 mt-1">Clicca su qualsiasi foto per ingrandirla e sfogliare l'album completo</p>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {servicesGallery.map((photo, index) => (
-                  <div 
-                    key={photo.id} 
-                    onClick={() => openLightbox(servicesGallery, index)}
-                    className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 group cursor-pointer relative"
-                  >
-                    <div className="relative h-64 overflow-hidden">
-                      <img src={photo.url} alt={photo.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                        <span className="bg-white/90 text-stone-900 font-semibold px-4 py-2 rounded-full text-xs flex items-center space-x-2">
-                          <Maximize2 className="w-4 h-4" />
-                          <span>Ingrandisci Foto</span>
-                        </span>
+
+              {servicesGallery.length === 0 ? (
+                <p className="text-center text-stone-400 py-8">Nessuna foto nella galleria. Aggiungine una dall'Area Admin.</p>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {servicesGallery.map((photo, index) => (
+                    <div 
+                      key={photo.id} 
+                      onClick={() => openLightbox(servicesGallery, index)}
+                      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 group cursor-pointer relative"
+                    >
+                      <div className="relative h-64 overflow-hidden">
+                        <img src={photo.url} alt={photo.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                          <span className="bg-white/90 text-stone-900 font-semibold px-4 py-2 rounded-full text-xs flex items-center space-x-2">
+                            <Maximize2 className="w-4 h-4" />
+                            <span>Ingrandisci Foto</span>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h4 className="font-bold text-stone-800">{photo.title}</h4>
                       </div>
                     </div>
-                    <div className="p-4">
-                      <h4 className="font-bold text-stone-800">{photo.title}</h4>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
